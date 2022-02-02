@@ -1,0 +1,167 @@
+@charset "UTF-8";
+
+/* TODO: 
+1. Check CSS Custom properties (the ones starting with -- i.e. --main-bg-color: coral; )
+	- Are they global variables? How to scope them to a specific class or id?
+2. How to apply wiggle & glow effects together to .ellipse-box:hover 
+	as they both use 'animate' attribute.
+3. Add a fancy notfound (404) page with swinging 404 (Oops! 404).
+4. Add a sliding colored window to page title (will need JS)!
+*/
+
+.body-index, .body-form { 
+	/*background-image: url('https://www.simplyrecipes.com/wp-content/uploads/2006/03/shrimp-cakes-vertical-a-1600-793x1024.jpg');*/
+	background-image: url('https://i.lezzet.com.tr/images-xxlarge-recipe/kis-pudingi-9654df7a-a639-4360-8c62-5780d213d2d8.jpg');
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+	background-size: cover;
+	z-index: -1;
+	opacity: 0.9; 
+}
+
+.body-show {
+  background: black;
+  position: relative;
+  z-index: 0;
+  opacity: 0.9;
+}
+
+
+.font-xxl { font-size: xx-large; }
+.font-xl { font-size: x-large; }
+.font-lg { font-size: large; }
+.font-lgr { font-size: larger; }
+.font-md { font-size: medium; }
+.font-smr { font-size: smaller; }
+.font-sm { font-size: small; }
+
+.alert-btn-cancel {
+	position: absolute;
+	right: 2%;
+}
+
+.highlight {
+	box-shadow: 0 0 0 3px violet;
+}
+
+/*<i class="fas fa-chevron-up"></i>*/
+[data-bs-toggle="collapse"] .fas:before {   
+  content: "\f077";
+}
+
+/*<i class="fas fa-chevron-down"></i>*/
+[data-bs-toggle="collapse"].collapsed .fas:before {
+  content: "\f078";
+}
+
+/* Custom properties for Glow Effects */
+:root {
+	--glow-radius: 2px; /* glow radius */
+	--glow-in-color: #FFF; /* glow color inside */
+	--glow-out-color: #FF1177; /* glow color outside */
+}
+
+.glow-red { --glow-out-color: var(--red, #228DFF); }
+.glow-orange { --glow-out-color: var(--orange, #FF9900); }
+.glow-yellow { --glow-out-color: var(--yellow, yellow); }
+.glow-green { --glow-out-color: var(--green, greenyellow); }
+.glow-blue { --glow-out-color: var(--blue, lightblue); }
+.glow-violet { --glow-out-color: violet; }
+
+.glow {
+	text-shadow: 0 0 calc(1 * var(--glow-radius)) var(--glow-in-color), 
+				 0 0 calc(2 * var(--glow-radius)) var(--glow-in-color), 
+				 0 0 calc(3 * var(--glow-radius)) var(--glow-in-color), 
+				 0 0 calc(4 * var(--glow-radius)) var(--glow-out-color), 
+				 0 0 calc(7 * var(--glow-radius)) var(--glow-out-color), 
+				 0 0 calc(8 * var(--glow-radius)) var(--glow-out-color), 
+				 0 0 calc(10 * var(--glow-radius)) var(--glow-out-color);
+/* 
+	text-shadow: 0 0 6px #fff, 
+				 0 0 12px #fff, 
+				 0 0 18px #fff, 
+				 0 0 24px #228DFF, 
+				 0 0 42px #228DFF, 
+				 0 0 48px #228DFF, 
+				 0 0 60px #228DFF;
+*/
+}
+
+.neon-box:hover {
+	animation: neon-box 3s linear infinite;
+}
+
+@keyframes neon-box {
+  from {
+  	transform: rotate(0deg);
+  	--glow-radius: 3px;
+    box-shadow: 0 0 calc(1 * var(--glow-radius)) var(--glow-in-color), 
+				0 0 calc(2 * var(--glow-radius)) var(--glow-in-color), 
+				0 0 calc(3 * var(--glow-radius)) var(--glow-in-color), 
+				0 0 calc(4 * var(--glow-radius)) var(--glow-out-color), 
+				0 0 calc(7 * var(--glow-radius)) var(--glow-out-color), 
+				0 0 calc(8 * var(--glow-radius)) var(--glow-out-color), 
+				0 0 calc(10 * var(--glow-radius)) var(--glow-out-color);
+  }
+  to {
+   transform: rotate(360deg);
+  	--glow-radius: 2px;
+    box-shadow: 0 0 calc(1 * var(--glow-radius)) var(--glow-in-color), 
+				0 0 calc(2 * var(--glow-radius)) var(--glow-in-color), 
+				0 0 calc(3 * var(--glow-radius)) var(--glow-in-color), 
+				0 0 calc(4 * var(--glow-radius)) var(--glow-out-color), 
+				0 0 calc(7 * var(--glow-radius)) var(--glow-out-color), 
+				0 0 calc(8 * var(--glow-radius)) var(--glow-out-color), 
+				0 0 calc(10 * var(--glow-radius)) var(--glow-out-color);
+  }
+}
+
+
+
+/***** Animations & Transitions & Transformations *****/
+
+/***** Pulse *****/
+
+.pulse:hover { 
+  animation: pulse 600ms linear infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1.0); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1.0); }
+}
+
+/***** Wiggle *****/
+
+.wiggle:hover{ 
+  animation: wiggle 100ms linear infinite;
+}
+
+@keyframes wiggle {
+  0% { transform: translate(2px, -1px); }
+  50% { transform: translate(-2px, 1px); }
+  100% { transform: translate(2px, -1px); }
+}
+
+/***** Transition & Transform *****/
+.rotate2 {
+	transition: transform 800ms ease;
+}
+
+.rotate2:hover {
+	transform: rotate(360deg);
+}
+
+
+/***** Rotate *****/
+.rotate {
+	transform: rotate(0deg);
+	transition: transform 0.25s ease-in-out;
+} 
+
+.rotate:hover { 
+	transform: rotate(350deg);
+	transition: transform 0.25s ease-in-out;
+}
+

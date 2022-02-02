@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+
+<!-- Using Thymeleaf expression preprocessing with __#{...}__ -->
+<head th:insert="~{layout :: header(title='__#{login.title}__')}">
+	<title>This is Login page.</title>
+</head>
+
+<body class="body-form">
+
+<nav th:replace="~{layout :: navbar(title='__#{login.title}__')}">
+	<span>This is Login navbar</span>
+</nav>
+
+<div role="main" class="container">
+	<form th:action="@{/login}" method="post">
+		<div class="card col-6 mx-auto py-3 bg-dark text-light" >
+			<div class="card-header text-center mt-3">
+				<h3 th:text="#{login.title}">Login Credentials</h3>
+			</div>
+			
+			<div class="card-body border border-primary">
+				<div class="input-group input-group-sm p-1">
+					<div th:if="${param.error}" class="col alert alert-danger alert-dismissible fade show" role="alert">
+						<span class="align-top"  th:inline="text"><i class="font-xl far fa-times-circle pr-2"></i> [[#{login.invalidCreds ?: 'Invalid username or password.'}]]</span>
+						<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+						</button>
+					</div>
+				    <div th:if="${param.logout}" class="col alert alert-info alert-dismissible fade show" role="alert">
+						<span class="align-top" th:inline="text"><i class="font-xl fas fa-exclamation-circle pr-2"></i> [[#{login.loggedOut ?: 'You have been logged out.'}]]</span>
+						<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+						</button>
+					</div>
+			    </div>
+			    
+		    	<div class="input-group input-group-sm p-1">
+		    		<div class="input-group-prepend">
+						<label for="username" class="input-group-text" th:text="#{login.user}">Username</label>
+					</div>
+					<input type="text" class="form-control" name="username" value="izzet"/>
+		        </div>
+		        
+		        <div class="input-group input-group-sm p-1">
+					<div class="input-group-prepend">
+						<label for="password" class="input-group-text" th:text="#{login.pass}">Password</label>
+					</div>
+					<input type="password" class="form-control" name="password" value="password"/>
+		        </div>
+	        </div>
+	       <!--##### BUTTONS #####-->
+				
+			<div class="card-footer d-flex justify-content-center mb-4">
+				<button type="submit" class="btn btn-outline-primary mx-2" th:text="#{form.login}">Sign in</button>
+				<button type="reset" class="btn btn-outline-warning mx-2"th:text="#{form.reset}">Reset</button>
+			</div>
+	   </div>
+	</form>
+</div>
+
+ 
+<footer th:replace="~{layout :: footer}">
+	<span>This is Login footer</span>
+</footer>
+
+
+<th:block th:replace="~{layout :: scripts}"></th:block>
+
+    
+</body>
+</html>

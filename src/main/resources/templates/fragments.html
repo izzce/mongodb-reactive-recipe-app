@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	
+<th:block th:fragment="thymeleafvars">
+		<!-- This is for printing Thymeleaf variables for debugging purposes -->
+	<div class="card mx-auto">
+		<div class="card-header text-center mt-3">
+			<h5>Thymeleaf Variables <small>(for debugging purposes)</small></h5>
+		</div>
+		<div class="card-body mr-4">
+			<ul>
+				<li th:each="var : ${#vars.getVariableNames()}">
+					<h6 th:text="${var}"></h6>
+					<small th:text="${#vars.getVariable(var)}"></small>
+				</li>
+				<li>
+					<h6>param:</h6>
+					<small th:text="${#vars.getVariable('param')}"></small>
+				</li>
+				<li>
+					<h6>session:</h6>
+					<small th:text="${#vars.getVariable('session')}"></small>
+				</li>
+				<li>
+					<h6>application:</h6>
+					<small th:text="${#vars.getVariable('application')}"></small>
+				</li>
+			</ul>
+		</div>
+    </div>
+</th:block>
+
+</html>

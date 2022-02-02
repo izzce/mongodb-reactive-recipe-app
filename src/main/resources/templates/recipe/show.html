@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<th:block th:replace="~{layout :: header(title= ${recipe.description})}"></th:block>
+ 
+<style type="text/css" th:inline="text">
+body.body-show::before {
+	background-image: url([[@{(${recipe.imageUrl})}]]); 
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-attachment: absolute;
+	content: "";
+	opacity: 0.7;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	right: 0;
+	left: 0;
+	z-index: -1;
+}
+</style>
+</head>
+
+<body class="body-show">
+
+<nav th:replace="~{layout :: navbar(title= ${recipe.description})}">
+	<span>This is Show Recipe Navbar</span>
+</nav>
+
+<div role="main" class="container-fluid">
+<div class="row">
+	
+	<div class="col-md-6 col-sm-12">
+		<div class="card m-2 shadow border">
+			<div class="card-body p-1">
+	            
+	            <ul class="list-group list-group-flush">
+				  <li class="list-group-item bg-grad p-2">
+					<div class="col-5 float-start">
+			        	<span class="h6" th:text="#{recipe.prepTime}">Prep Time:</span>
+			        </div>
+			        <div class="col-7 float-end">
+			        	<span th:text="@{${recipe.prepTime} + ' min'}">30 min</span>
+			        </div>
+				  </li>
+
+				  <li class="list-group-item bg-grad p-2">
+					<div class="col-5 float-start">
+			        	<span class="h6" th:text="#{recipe.cookTime}">Cook time:</span>
+			        </div>
+			        <div class="col-7 float-end">
+			        	<span th:text="@{${recipe.cookTime} + ' min'}">30 min</span>
+			        </div>
+				  </li>				  
+				  
+				  <li class="list-group-item bg-grad p-2">
+					<div class="col-5 float-start">
+			        	<span class="h6" th:text="#{recipe.difficulty}">Difficulty:</span>
+			        </div>
+			        <div class="col-7 float-end">
+			        	<span th:text="#{recipe.difficulty.__${#strings.toLowerCase(recipe.difficulty)}__}">Easy</span>
+			        </div>
+				  </li>	
+				  
+				  <li class="list-group-item bg-grad p-2">
+					<div class="col-5 float-start">
+			        	<span class="h6" th:text="#{recipe.servings}">Servings:</span>
+			        </div>
+			        <div class="col-7 float-end">
+			        	<span th:text="${recipe.servings}">4</span>
+			        </div>
+				  </li>
+				  
+				  <li class="list-group-item bg-grad p-2">
+					<div class="col-5 float-start">
+			        	<span class="h6" th:text="#{recipe.source}">Source:</span>
+			        </div>
+		            <div class="col-7 float-end">
+		                <a class="text-right" href="#" target="_blank" th:href="${recipe.url}" th:text="${recipe.source}">Easy Recipes</a>
+		            </div>
+				  </li>
+
+				  <li class="list-group-item bg-grad p-2">
+					<div class="col-5 float-start">
+			        	<span class="h6" th:text="#{recipe.categories}">Categories:</span>
+			        </div>
+		            <div class="col-7 float-end font-lg">
+						<span th:remove="all">Turkish</span>
+		                <span th:remove="all">Mexican</span>
+		                <span class="badge bg-primary mx-1" 
+		                	th:each="category : ${recipe.categories}" 
+		                	th:text="${category.description}">Italian</span>	                
+		            </div>
+				  </li>			  		  					  
+				</ul>
+				
+	        </div>
+	        
+        </div>
+	        
+        <div class="card m-2 mt-3 shadow border">
+			<div class="card-header bg-warning text-dark shadow">
+               	<span class="h5" th:text="#{recipe.directions}">Directions</span>
+               	<button type="button" class="btn btn-warning float-end px-1 py-0 mr-n1 collapsed" data-bs-toggle="collapse" data-bs-target="#card1">
+					<i class="fas fa-1x"></i>
+				</button>
+           	</div>
+            <div class="card-body collapse" id="card1">
+            	<ul> 
+            		<li th:remove="all">Lorem ipsum dolor sit amet, consectetuer adipiscing elit.</li>
+            		<li th:remove="all">Lorem ipsum dolor sit amet, consectetuer adipiscing elit.</li>
+            		<li th:each="direction : ${recipe.directions}" th:if="${not #strings.isEmpty(direction)}" th:text="${direction.direction}">
+            		Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+            		</li>
+            	</ul>
+            </div>
+         </div>
+	    
+	</div>
+	
+	<div class="col-md-6 col-sm-12">
+		<div class="card m-2 shadow border">
+			<img class="img-fluid rounded" src="" th:src="${recipe.imageUrl}" />
+		</div>
+	</div>
+	
+</div>
+
+<div class="row">
+
+	<div class="col-md-6 col-sm-12">
+		<div class="card m-2 shadow">
+			<div class="card-header bg-primary text-light shadow">
+				<span class="h5" th:text="#{recipe.ingredients}">Ingredients</span>
+				<button type="button" class="btn btn-primary float-end px-1 py-0 mr-n1 collapsed" data-bs-toggle="collapse" data-bs-target="#card3">
+					<i class="fas fa-1x"></i>
+				</button>
+			</div>
+			<div class="card-body collapse" id="card3"
+				th:if="${not #lists.isEmpty(recipe.ingredients)}">
+				<ul>
+					<li th:remove="all">1 Cup of milk</li>
+					<li th:remove="all">1 Teaspoon of chocolate</li>
+					<li th:each="ing : ${recipe.ingredients}"
+						th:text="@{ ${#numbers.formatDecimal(ing.amount,1,1)} + ' ' + ${ing.uom.uom} + ' of ' + ${ing.description}}">1
+						Teaspoon of Sugar</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-md-6 col-sm-12">
+		<div class="card m-2 shadow">
+		    <div class="card-header bg-danger text-light shadow">
+		        <span class="h5" th:text="#{recipe.notes}">Notes</span>
+				<button type="button" class="btn btn-danger float-end px-1 py-0 mr-n1 collapsed" data-bs-toggle="collapse" data-bs-target="#card2">
+					<i class="fas fa-1x"></i>
+				</button>
+		    </div>
+		    <div class="card-body collapse" id="card2">
+	            <ul>
+		            <li th:remove="all">Lorem ipsum dolor sit amet, consectetuer adipiscing elit.</li>
+					<li th:remove="all">Lorem ipsum dolor sit amet, consectetuer adipiscing elit.</li>
+	            	<li th:each="note : ${recipe.notes}" th:text="${note.note}">
+	            		Lorem ipsum dolor sit amet, consectetuer adipiscing elit.</li>
+	            </ul>
+		    </div>
+		</div>
+	</div>
+</div>
+
+</div>
+
+
+<footer th:replace="~{layout :: footer}">
+	<span>This is Show page - Copyright &copy; 2022</span>
+</footer>
+
+
+<th:block th:replace="~{layout :: scripts}"></th:block>
+	
+	<script type="text/javascript"  th:src="@{/js/recipe-show.js}"
+		src="../../static/js/recipe-show.js"></script>
+	
+</body>
+</html>

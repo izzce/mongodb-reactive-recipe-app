@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:insert="~{layout :: header(title='__#{index.title}__')}">
+	<title>This is Index Title</title>
+</head>
+
+<body class="body-index">
+
+<nav th:replace="~{layout :: navbar(title='__#{index.title}__')}">
+	<span>This is Index navbar</span>
+</nav>
+	
+	
+<div role="main" class="container">
+	<div id="jumbotron" class="container-fluid mx-auto p-5 bg-dark" >
+		<table class="table table-dark table-striped mb-0 mt-4">
+			<thead>
+               <tr>
+                   <td class="" colspan="3">
+                		<h3 class="text-center" th:text="#{index.title}">Recipe Index</h3>
+                   </td>   
+               </tr>
+            </thead>
+			<tbody  th:if="${not #lists.isEmpty(recipes)}">
+				<tr class="">
+					<th style="width:10%" th:text="#{index.id}">ID</th>
+					<th style="width:65%" th:text="#{index.name}">Description</th>
+					<th style="white-space:nowrap" class="text-right" th:text="#{index.actions}">Actions</th>
+				</tr>
+	            <tr th:remove="all">
+	                <td th:text="${recipe.id}">11</td>
+	                <td th:text="${recipe.description}">Tasty Goodness 1</td>
+	                <td>
+	                	<a href="#" role="button"><i class="far fa-eye btn btn-outline-primary pulse"></i></a>
+	                	<a href="#" role="button"><i class="fas fa-minus-circle btn btn-outline-danger pulse"></i></a>
+	                </td>
+	            </tr>
+	            <tr th:each="recipe : ${recipes}">
+	                <td th:text="${recipe.id}">334</td>
+	                <td th:text="${recipe.description}">Tasty Goodness 3</td>
+	                <td class="text-right">
+	                	<a href="#" th:href="@{'/recipe/' + ${recipe.id} + '/show'}" role="button"><i class="far fa-eye btn btn-outline-primary font-xl border-0 p-1 pulse"></i></a>
+	                	<a href="#" th:href="@{'/recipe/' + ${recipe.id} + '/update'}" role="button"><i class="far fa-edit btn btn-outline-warning font-xl border-0 p-1 pulse"></i></a>
+	                	<a href="#" th:href="@{'/recipe/' + ${recipe.id} + '/delete'}" role="button"><i class="fas fa-minus-circle btn btn-outline-danger font-xl border-0 p-1 pulse"></i></a>
+	                </td>   
+	            </tr>
+            </tbody>   
+            <tfoot>
+               <tr>
+                   <td />
+                   <td />
+                   <td class="text-right">
+                		<a class="text-primary" href="/recipe/new" role="button" title="New recipe"><i id="new" class="fas fa-plus-circle btn btn-outline-primary font-xl border-0 p-1 pulse"></i></a>
+                   </td>   
+               </tr>
+            </tfoot>
+		</table>	
+	</div>
+</div>
+	
+	
+<footer th:replace="~{layout :: footer}">
+	<span>This is Index - Copyright &copy; 2022</span>
+</footer>
+
+
+<th:block th:replace="~{layout :: scripts}"></th:block>
+
+</body>
+</html>

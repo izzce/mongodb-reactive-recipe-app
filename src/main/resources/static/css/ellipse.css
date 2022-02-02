@@ -1,0 +1,140 @@
+/***** Ellipse Box *****/
+
+div#home, #title, #pepper, #pizza {
+	z-index: 2;
+}
+
+div#home i, #title, #pepper, #pizza {
+	font-size: 48px;
+	line-height: 1.0;
+}
+
+
+#lightening-canvas {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left:0;
+	z-index: 1;
+	display: none;
+}
+
+.ellipse-box {
+	background: black;
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    right: 24px;
+    top: 24px;
+    position: fixed;
+    box-shadow: 0px 0px 20px lightblue;
+    z-index: 2;
+}
+.ellipse-box:hover {
+	color: #BA01FF;
+	--glow-out-color: var(--orange, #FF9900);
+    animation: neon-box 600ms ease-in-out infinite alternate;
+    /*animation: wiggle 100ms linear infinite; */
+}
+
+.ellipse {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  top: 4px;
+  right: 4px;
+  position: absolute;
+  border: 2px #555 solid;
+  box-shadow: 0px 0px 20px white;
+  transform-style: preserve-3d;
+}
+.ellipse .circle {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  position: absolute;
+  animation: move linear infinite;
+}
+.ellipse:nth-child(1) {
+  transform: rotateZ(60deg) rotateY(70deg);
+}
+.ellipse:nth-child(1) .circle {
+  animation-duration: 2s;
+}
+.ellipse:nth-child(2) {
+  transform: rotateZ(120deg) rotateY(70deg);
+}
+.ellipse:nth-child(2) .circle {
+  animation-duration: 3s;
+}
+.ellipse:nth-child(3) {
+  transform: rotateZ(180deg) rotateY(70deg);
+}
+.ellipse:nth-child(3) .circle {
+  animation-duration: 4s;
+}
+
+@keyframes move {
+  from {
+    transform: rotateZ(0) translateX(50px) rotateZ(0) rotateY(-70deg);
+  }
+  to {
+    transform: rotateZ(360deg) translateX(50px) rotateZ(-360deg) rotateY(-70deg);
+  }
+}
+
+
+/*
+// SCSS
+//https://codepen.io/ghost028/pen/bEBKXZ?editors=1100
+
+$ellipse:50px;
+//
+$circle:$ellipse/10;
+@mixin style($mod) {
+    width: $mod * 2;
+    height: $mod * 2;
+    border-radius: 50%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    position: absolute;
+}
+
+.ellipse {
+    @include style($ellipse);
+    border: 2px #555 solid;
+    transform-style: preserve-3d;
+    .circle {
+        @include style($circle);
+        background: deepskyblue;
+        animation: move linear infinite;
+    }
+    @for $i from 1 through 3 {
+        &:nth-child(#{$i}) {
+            transform: rotateZ($i*2*30deg) rotateY(70deg);
+            .circle {
+                animation-duration: $i + s;
+            }
+        }
+    }
+}
+
+@keyframes move {
+    from {
+        transform: rotateZ(0) translateX($ellipse) rotateZ(0) rotateY(-70deg);
+    }
+    to {
+        transform: rotateZ(360deg) translateX($ellipse) rotateZ(-360deg) rotateY(-70deg);
+    }
+}
+
+*/

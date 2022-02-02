@@ -1,0 +1,23 @@
+https://docs.spring.io/spring-boot/docs/2.0.0.M6/reference/html/howto-embedded-web-servers.html#howto-configure-ssl
+
+https://www.baeldung.com/spring-boot-https-self-signed-certificate
+
+
+$ keytool -genkeypair -alias mykeystore -keyalg RSA -keysize 2048 -keystore mykeystore.jks -validity 3650
+Enter keystore password:  mykeystore
+Re-enter new password: mykeystore
+What is your first and last name?
+  [Unknown]:  Iz Ce
+What is the name of your organizational unit?
+  [Unknown]:  IZCE
+What is the name of your organization?
+  [Unknown]:  IZCE
+What is the name of your City or Locality?
+  [Unknown]:  Istanbul
+What is the name of your State or Province?
+  [Unknown]:  Marmara
+What is the two-letter country code for this unit?
+  [Unknown]:  TR
+Is CN=Iz Ce, OU=IZCE, O=IZCE, L=Istanbul, ST=Marmara, C=TR correct?
+  [no]:  Yes
+
