@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>org.izce</groupId>
-	<artifactId>mongodb-recipe-app</artifactId>
+	<artifactId>mongodb-reactive-recipe-app</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>mongodb-recipe-app</name>
-	<description>MongoDB Recipe App Sample</description>
+	<name>mongodb-reactive-recipe-app</name>
+	<description>MongoDB Reactive Recipe App Cource</description>
 
 	<properties>
 		<java.version>11</java.version>
@@ -20,9 +20,13 @@
 	</properties>
 
 	<dependencies>
-		<dependency>
+			<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-mongodb</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-mongodb-reactive</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>de.flapdoodle.embed</groupId>
@@ -59,6 +63,11 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -150,8 +159,7 @@
 					                    <limit>
 					                        <counter>LINE</counter>
 					                        <value>COVEREDRATIO</value>
-					                        <!-- <minimum>0.60</minimum> -->
-					                        <minimum>0.00</minimum>
+					                        <minimum>0.60</minimum>
 					                    </limit>
 					                </limits>
 					            </rule>

@@ -62,9 +62,9 @@ jobs:
       - run:
           name: Send to CodeCov
           command: bash <(curl -s https://codecov.io/bash)
-          # Access token as env var: https://app.codecov.io/gh/izzce/mongodb-recipe-app
+          # Access token as env var: https://app.codecov.io/gh/izzce/mongodb-reactive-recipe-app
           environment:
-            CODECOV_TOKEN: d3c252d2-d29e-43ae-8de3-0583e98b1364
+            CODECOV_TOKEN: 9517e63e-10b4-4ceb-88e8-c097fd494620
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows

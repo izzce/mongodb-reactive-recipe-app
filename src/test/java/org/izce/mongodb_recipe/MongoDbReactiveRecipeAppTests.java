@@ -9,7 +9,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @Disabled 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-public class MongoDbRecipeApplicationTests {
+public class MongoDbReactiveRecipeAppTests {
 
 	@Test
 	public void contextLoads() {

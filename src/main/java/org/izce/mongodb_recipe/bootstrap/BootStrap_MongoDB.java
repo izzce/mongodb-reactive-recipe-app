@@ -4,9 +4,12 @@ import org.izce.mongodb_recipe.model.Category;
 import org.izce.mongodb_recipe.model.UnitOfMeasure;
 import org.izce.mongodb_recipe.repositories.CategoryRepository;
 import org.izce.mongodb_recipe.repositories.UnitOfMeasureRepository;
+import org.izce.mongodb_recipe.repositories.reactive.UomReactiveRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,12 +20,16 @@ public class BootStrap_MongoDB implements ApplicationListener<ContextRefreshedEv
 	private final CategoryRepository categoryRepo;
 	private final UnitOfMeasureRepository uomRepo;
 
+	@Autowired
+	UomReactiveRepository uomReactiveRepo;
+	
 	public BootStrap_MongoDB(CategoryRepository categoryRepo, UnitOfMeasureRepository uomRepo) {
 		this.categoryRepo = categoryRepo;
 		this.uomRepo = uomRepo;
 		log.debug("Running BootStrap_MongoDB");
 	}
 
+	@Transactional
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
 		if (categoryRepo.count() == 0L) {
@@ -34,6 +41,10 @@ public class BootStrap_MongoDB implements ApplicationListener<ContextRefreshedEv
 			log.debug("Loading UOMs");
 			loadUom();
 		}
+		
+		log.error("#####");
+		log.error("Count: " + uomReactiveRepo.count().block());
+
 	}
 
 	private void loadCategories() {

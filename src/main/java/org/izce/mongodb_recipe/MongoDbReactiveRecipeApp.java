@@ -19,10 +19,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @SpringBootApplication
 @EnableConfigurationProperties(StorageProperties.class)
 @EnableMongoRepositories
-public class MongoDbRecipeApplication {
+public class MongoDbReactiveRecipeApp {
 
 	public static void main(String[] args) {
-		SpringApplication.run(MongoDbRecipeApplication.class, args);
+		SpringApplication.run(MongoDbReactiveRecipeApp.class, args);
 	}
 
     @Configuration
