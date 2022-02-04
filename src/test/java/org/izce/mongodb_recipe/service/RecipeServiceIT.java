@@ -54,7 +54,7 @@ public class RecipeServiceIT {
     	categoryRepo.deleteAll();
     	uomRepo.deleteAll();
     	
-    	BootStrap_MongoDB bootstrap = new BootStrap_MongoDB(categoryRepo, uomRepo);
+    	BootStrap_MongoDB bootstrap = new BootStrap_MongoDB();
     	bootstrap.onApplicationEvent(null);
     }
     

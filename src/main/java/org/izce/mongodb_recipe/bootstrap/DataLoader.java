@@ -21,8 +21,8 @@ import org.springframework.stereotype.Component;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Component
-@Profile("default")
+//@Component
+//@Profile("default")
 public class DataLoader implements CommandLineRunner {
 
 	private final RecipeRepository recipeRepo;

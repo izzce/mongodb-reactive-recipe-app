@@ -1,4 +1,4 @@
-package org.izce.mongodb_recipe.repositories;
+package org.izce.mongodb_recipe.repositories.reactive;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -11,38 +11,38 @@ import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 @DataMongoTest
-public class UnitOfMeasureRepositoryIT {
+public class UomReactiveRepositoryIT {
 	private static final String TEASPOON = "Teaspoon";
 	
 	@MockBean
     private StorageService storageService;
 	
 	@Autowired
-	UnitOfMeasureRepository repository;
-	
+	UomReactiveRepository repository;
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		repository.deleteAll();
+		repository.deleteAll().block();
 	}
 	
     @Test
     public void testSaveUom() throws Exception {
         var uom = new UnitOfMeasure(TEASPOON);
-        repository.save(uom);
+        repository.save(uom).block();
 
-        assertEquals(Long.valueOf(1L), repository.count());
+        Long count = repository.count().block();
+
+        assertEquals(Long.valueOf(1L), count);
     }
 
     @Test
     public void testFindByUom() throws Exception {
     	var uom = new UnitOfMeasure(TEASPOON);
-    	repository.save(uom);
+    	repository.save(uom).block();
 
-        var fetchedUOM = repository.findByUom(TEASPOON).get();
+        var fetchedUOM = repository.findByUom(TEASPOON).block();
 
         assertEquals(TEASPOON, fetchedUOM.getUom());
 
     }
-
 }
