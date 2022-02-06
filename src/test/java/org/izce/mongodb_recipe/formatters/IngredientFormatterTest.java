@@ -7,7 +7,6 @@ import java.util.Locale;
 
 import org.izce.mongodb_recipe.commands.IngredientCommand;
 import org.izce.mongodb_recipe.commands.UnitOfMeasureCommand;
-import org.izce.mongodb_recipe.formatters.IngredientFormatter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

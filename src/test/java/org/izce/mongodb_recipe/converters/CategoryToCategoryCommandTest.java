@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.izce.mongodb_recipe.commands.CategoryCommand;
-import org.izce.mongodb_recipe.converters.CategoryToCategoryCommand;
 import org.izce.mongodb_recipe.model.Category;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

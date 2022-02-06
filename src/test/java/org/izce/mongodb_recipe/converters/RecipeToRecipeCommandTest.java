@@ -7,12 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.math.BigDecimal;
 
 import org.izce.mongodb_recipe.commands.RecipeCommand;
-import org.izce.mongodb_recipe.converters.CategoryToCategoryCommand;
-import org.izce.mongodb_recipe.converters.DirectionToDirectionCommand;
-import org.izce.mongodb_recipe.converters.IngredientToIngredientCommand;
-import org.izce.mongodb_recipe.converters.NoteToNoteCommand;
-import org.izce.mongodb_recipe.converters.RecipeToRecipeCommand;
-import org.izce.mongodb_recipe.converters.UnitOfMeasureToUnitOfMeasureCommand;
 import org.izce.mongodb_recipe.model.Category;
 import org.izce.mongodb_recipe.model.Difficulty;
 import org.izce.mongodb_recipe.model.Direction;

@@ -11,8 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.nio.file.Paths;
 
 import org.izce.mongodb_recipe.commands.RecipeCommand;
-import org.izce.mongodb_recipe.controllers.ControllerExceptionHandler;
-import org.izce.mongodb_recipe.controllers.ImageController;
 import org.izce.mongodb_recipe.services.ImageService;
 import org.izce.mongodb_recipe.services.RecipeService;
 import org.izce.mongodb_recipe.services.StorageProperties;

@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.izce.mongodb_recipe.commands.UnitOfMeasureCommand;
-import org.izce.mongodb_recipe.converters.UnitOfMeasureCommandToUnitOfMeasure;
 import org.izce.mongodb_recipe.model.UnitOfMeasure;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
