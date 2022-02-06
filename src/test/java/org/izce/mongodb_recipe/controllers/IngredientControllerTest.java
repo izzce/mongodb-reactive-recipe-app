@@ -15,7 +15,6 @@ import java.util.List;
 import org.izce.mongodb_recipe.commands.IngredientCommand;
 import org.izce.mongodb_recipe.commands.RecipeCommand;
 import org.izce.mongodb_recipe.commands.UnitOfMeasureCommand;
-import org.izce.mongodb_recipe.controllers.IngredientController;
 import org.izce.mongodb_recipe.services.IngredientService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +26,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.ui.Model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import reactor.core.publisher.Mono;
 
 public class IngredientControllerTest {
 	@Mock
@@ -55,7 +56,7 @@ public class IngredientControllerTest {
 		IngredientCommand dc = new IngredientCommand("1", recipe.getId(), "Salt", new BigDecimal(0.5f), piece);
 		recipe.getIngredients().add(dc);
 
-		when(ingredientService.saveIngredientCommand(any())).thenReturn(dc);
+		when(ingredientService.saveIngredientCommand(any())).thenReturn(Mono.just(dc));
 
 		mockMvc.perform(post("/recipe/2/ingredient/add").sessionAttr("recipe", recipe).sessionAttr("uomList", uomList)
 				.contentType(MediaType.APPLICATION_JSON).content(asJsonString(dc))).andExpect(status().isOk())
@@ -69,7 +70,7 @@ public class IngredientControllerTest {
 
 		IngredientCommand dcUpdated = new IngredientCommand("1", recipe.getId(), "Sugar", new BigDecimal(0.5f), piece);
 
-		when(ingredientService.saveIngredientCommand(any())).thenReturn(dcUpdated);
+		when(ingredientService.saveIngredientCommand(any())).thenReturn(Mono.just(dcUpdated));
 
 		mockMvc.perform(post("/recipe/2/ingredient/1/update").sessionAttr("recipe", recipe).sessionAttr("uomList", uomList)
 				.contentType(MediaType.APPLICATION_JSON).content(asJsonString(dcUpdated))).andExpect(status().isOk())
@@ -81,6 +82,8 @@ public class IngredientControllerTest {
 	public void testDeleteExistingIngredient() throws Exception {
 		IngredientCommand dc = new IngredientCommand("1", recipe.getId(), "Salt", new BigDecimal(0.5f), piece);
 		recipe.getIngredients().add(dc);
+		
+		when(ingredientService.delete(any())).thenReturn(Mono.empty());
 
 		mockMvc.perform(delete("/recipe/2/ingredient/1/delete").sessionAttr("recipe", recipe).sessionAttr("uomList", uomList)).andExpect(status().isOk())
 				.andExpect(jsonPath("$.id", is("1")));

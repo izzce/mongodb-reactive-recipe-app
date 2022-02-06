@@ -49,7 +49,7 @@ public class IngredientController {
 		var uomId = ingredient.getUom().getId();
 		ingredient.setUom(uomList.stream().filter(e -> e.getId().equals(uomId)).findAny().orElseThrow());
 
-		IngredientCommand savedIngredient = ingredientService.saveIngredientCommand(ingredient);
+		IngredientCommand savedIngredient = ingredientService.saveIngredientCommand(ingredient).block();
 		recipe.getIngredients().add(savedIngredient);
 		model.addAttribute("recipe", recipe);
 
@@ -76,7 +76,7 @@ public class IngredientController {
 		var uomId = ingredient.getUom().getId();
 		ingredient.setUom(uomList.stream().filter(e -> e.getId().equals(uomId)).findAny().orElseThrow());
 
-		IngredientCommand savedIngredient = ingredientService.saveIngredientCommand(ingredient);
+		IngredientCommand savedIngredient = ingredientService.saveIngredientCommand(ingredient).block();
 		recipe.getIngredients().add(savedIngredient);
 		model.addAttribute("recipe", recipe);
 
@@ -102,7 +102,7 @@ public class IngredientController {
 			HttpServletResponse resp) throws Exception {
 
 		if (true == recipe.getIngredients().removeIf(e -> e.getId().equals(ingredientId))) {
-			ingredientService.delete(ingredientId);
+			ingredientService.delete(ingredientId).block();
 		} else {
 			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);			
 		}

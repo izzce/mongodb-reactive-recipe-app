@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.izce.mongodb_recipe.controllers.IndexController;
 import org.izce.mongodb_recipe.model.Recipe;
 import org.izce.mongodb_recipe.services.RecipeService;
 import org.junit.jupiter.api.BeforeEach;

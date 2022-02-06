@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Locale;
 
 import org.izce.mongodb_recipe.commands.CategoryCommand;
-import org.izce.mongodb_recipe.formatters.CategoryFormatter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
