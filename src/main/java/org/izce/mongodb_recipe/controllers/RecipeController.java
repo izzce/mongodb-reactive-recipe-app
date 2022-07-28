@@ -6,7 +6,6 @@ import javax.servlet.http.HttpSession;
 import org.izce.mongodb_recipe.commands.RecipeCommand;
 import org.izce.mongodb_recipe.exceptions.NotFoundException;
 import org.izce.mongodb_recipe.services.RecipeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -30,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 public class RecipeController {
 	private final RecipeService recipeService;
 
-	@Autowired
 	public RecipeController(RecipeService recipeService) {
 		log.debug("Initializing RecipeController ...");
 		this.recipeService = recipeService;
@@ -41,7 +39,7 @@ public class RecipeController {
 			@PathVariable String id, 
 			Model model) {
 		log.debug("recipe/show page is requested!");
-		model.addAttribute("recipe", recipeService.findById(id));
+		model.addAttribute("recipe", recipeService.findById(id).block());
 		return "recipe/show";
 	}
 
@@ -49,7 +47,7 @@ public class RecipeController {
 	public String createRecipe(final Model model) {
 		log.debug("recipe/new is requested!");
 		model.addAttribute("recipe", new RecipeCommand());
-		model.addAttribute("uomList", recipeService.findAllUoms());
+		model.addAttribute("uomList", recipeService.findAllUoms().collectList().block());
 
 		return "recipe/form";
 	}
@@ -57,8 +55,8 @@ public class RecipeController {
 	@GetMapping("/recipe/{id}/update")
 	public String updateRecipe(@PathVariable String id, Model model) {
 		log.debug("recipe/{}/update page is requested!", id);
-		model.addAttribute("recipe", recipeService.findRecipeCommandById(id));
-		model.addAttribute("uomList", recipeService.findAllUoms());
+		model.addAttribute("recipe", recipeService.findRecipeCommandById(id).block());
+		model.addAttribute("uomList", recipeService.findAllUoms().collectList().block());
 
 		return "recipe/form";
 	}
@@ -78,7 +76,7 @@ public class RecipeController {
 		
 		//printRequestMap(req, session, model);
 
-		RecipeCommand savedRecipe = recipeService.saveRecipeCommand(recipe);
+		RecipeCommand savedRecipe = recipeService.saveRecipeCommand(recipe).block();
 
 		if (recipe.getId() == null) {
 			// 1. createRecipe(...)
@@ -100,7 +98,7 @@ public class RecipeController {
 	@GetMapping(value = "/recipe/{recipeId}/delete")
 	public String deleteRecipe(@PathVariable String recipeId) throws Exception {
 		
-		recipeService.delete(recipeId);
+		recipeService.delete(recipeId).block();
 		
 		return "redirect:/index";
 	}

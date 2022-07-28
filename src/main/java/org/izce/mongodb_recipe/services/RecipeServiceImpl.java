@@ -12,46 +12,45 @@ import org.izce.mongodb_recipe.converters.CategoryToCategoryCommand;
 import org.izce.mongodb_recipe.converters.RecipeCommandToRecipe;
 import org.izce.mongodb_recipe.converters.RecipeToRecipeCommand;
 import org.izce.mongodb_recipe.converters.UnitOfMeasureToUnitOfMeasureCommand;
-import org.izce.mongodb_recipe.exceptions.NotFoundException;
 import org.izce.mongodb_recipe.model.Category;
 import org.izce.mongodb_recipe.model.Direction;
 import org.izce.mongodb_recipe.model.Ingredient;
 import org.izce.mongodb_recipe.model.Note;
 import org.izce.mongodb_recipe.model.Recipe;
-import org.izce.mongodb_recipe.repositories.CategoryRepository;
-import org.izce.mongodb_recipe.repositories.DirectionRepository;
-import org.izce.mongodb_recipe.repositories.IngredientRepository;
-import org.izce.mongodb_recipe.repositories.NoteRepository;
-import org.izce.mongodb_recipe.repositories.RecipeRepository;
-import org.izce.mongodb_recipe.repositories.UnitOfMeasureRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.izce.mongodb_recipe.repositories.reactive.CategoryReactiveRepository;
+import org.izce.mongodb_recipe.repositories.reactive.DirectionReactiveRepository;
+import org.izce.mongodb_recipe.repositories.reactive.IngredientReactiveRepository;
+import org.izce.mongodb_recipe.repositories.reactive.NoteReactiveRepository;
+import org.izce.mongodb_recipe.repositories.reactive.RecipeReactiveRepository;
+import org.izce.mongodb_recipe.repositories.reactive.UomReactiveRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
 public class RecipeServiceImpl implements RecipeService {
-	private final RecipeRepository recipeRepo;
+	private final RecipeReactiveRepository recipeRepo;
+    private final CategoryReactiveRepository categoryRepo;
+    private final IngredientReactiveRepository ingredientRepo;
+    private final UomReactiveRepository uomRepo;
+    private final NoteReactiveRepository notesRepo;
+    private final DirectionReactiveRepository directionRepo;
+    
     private final RecipeCommandToRecipe recipeCommandToRecipe;
     private final RecipeToRecipeCommand recipeToRecipeCommand;
     private final CategoryToCategoryCommand cTocc;
-    private final CategoryRepository categoryRepo;
-    private final IngredientRepository ingredientRepo;
-    private final UnitOfMeasureRepository uomRepo;
-    private final NoteRepository notesRepo;
-    private final DirectionRepository directionRepo;
     private final UnitOfMeasureToUnitOfMeasureCommand uom2uomc;
 
-	@Autowired
 	public RecipeServiceImpl(
-			RecipeRepository rr, 
-			CategoryRepository cr, 
-			IngredientRepository ir,
-			UnitOfMeasureRepository uomr,
-			NoteRepository nr,
-			DirectionRepository dr,
+			RecipeReactiveRepository rr, 
+			CategoryReactiveRepository cr, 
+			IngredientReactiveRepository ir,
+			UomReactiveRepository uomr,
+			NoteReactiveRepository nr,
+			DirectionReactiveRepository dr,
 			RecipeCommandToRecipe rc2r, 
 			RecipeToRecipeCommand r2rc,
 			UnitOfMeasureToUnitOfMeasureCommand uom2uomc, 
@@ -71,41 +70,38 @@ public class RecipeServiceImpl implements RecipeService {
 	}
 
 	@Override
-	public Iterable<Recipe> getRecipes() {
+	public Flux<Recipe> getRecipes() {
 		return recipeRepo.findAll();
 	}
 
 	@Override
-	public Long getRecipesCount() {
+	public Mono<Long> getRecipesCount() {
 		return recipeRepo.count();
 	}
 
 	@Override
-	public Recipe findById(String id) {
-		Optional<Recipe> recipeOptional = recipeRepo.findById(id);
-		
-		return recipeOptional.orElseThrow(() -> new NotFoundException("Recipe not found for id: " + id));
+	public Mono<Recipe> findById(String id) {
+		return recipeRepo.findById(id);
 	}
 	
     @Override
-    @Transactional
-    public RecipeCommand saveRecipeCommand(RecipeCommand recipeCommand) {
+    public Mono<RecipeCommand> saveRecipeCommand(RecipeCommand recipeCommand) {
         Recipe recipe = recipeCommandToRecipe.convert(recipeCommand);
         
         if (recipe.getId() == null) {
-        	recipe = recipeRepo.save(recipe);
+        	recipe = recipeRepo.save(recipe).block();
         }
         
         if (recipe.getCategories().size() > 0) {
         	List<Category> newCategories = new ArrayList<>();
         	for (var c : recipe.getCategories()) {
         		if (c.getId() == null) {
-        			Optional<Category> savedCategory = categoryRepo.findByDescriptionIgnoreCase(c.getDescription());
+        			Optional<Category> savedCategory = categoryRepo.findByDescriptionIgnoreCase(c.getDescription()).blockOptional();
         			if (savedCategory.isPresent()) {
         				newCategories.add(savedCategory.get());
         			} else {
         				// First save the new category and then add to set of categories (a fresh set)!
-        				newCategories.add(categoryRepo.save(c));
+        				newCategories.add(categoryRepo.save(c).block());
         			}
         		} else {
         			newCategories.add(c);
@@ -118,9 +114,9 @@ public class RecipeServiceImpl implements RecipeService {
         if (recipe.getDirections().size() > 0) {
         	List<Direction> newDirections = new ArrayList<>();
         	for(var d : recipe.getDirections()) {
-        		d.setRecipe(recipe);
+        		//d.setRecipe(recipe);
         		if (d.getId() == null) {
-        			newDirections.add(directionRepo.save(d));
+        			newDirections.add(directionRepo.save(d).block());
         		}
         	}
         	recipe.setDirections(newDirections);
@@ -129,9 +125,9 @@ public class RecipeServiceImpl implements RecipeService {
         if (recipe.getIngredients().size() > 0) {
         	List<Ingredient> newIngredients = new ArrayList<>();
         	for(var i : recipe.getIngredients()) {
-        		i.setRecipe(recipe);
+        		//i.setRecipe(recipe);
         		if (i.getId() == null) {
-        			newIngredients.add(ingredientRepo.save(i));
+        			newIngredients.add(ingredientRepo.save(i).block());
         		}
         	}
         	recipe.setIngredients(newIngredients);
@@ -140,77 +136,54 @@ public class RecipeServiceImpl implements RecipeService {
         if (recipe.getNotes().size() > 0) {
         	List<Note> newNotes = new ArrayList<>();
         	for (var n : recipe.getNotes()) {
-        		n.setRecipe(recipe);
+        		//n.setRecipe(recipe);
         		if (n.getId() == null) {
-        			newNotes.add(notesRepo.save(n));
+        			newNotes.add(notesRepo.save(n).block());
         		}
         	}
         }
         
-        recipe = recipeRepo.save(recipe);
-
-        log.info("Saved Recipe - id: {}, name: {}", recipe.getId(), recipe.getDescription());
-        return recipeToRecipeCommand.convert(recipe);
+        // log.info("Saved Recipe - id: {}, name: {}", recipe.getId(), recipe.getDescription());
+        
+        return recipeRepo.save(recipe).map(recipeToRecipeCommand::convert);
     }
 
 	@Override
-	public CategoryCommand findCategoryByDescription(String description) {
-		var cOpt = categoryRepo.findByDescriptionIgnoreCase(description);
-		if (cOpt.isPresent()) {
-			return cTocc.convert(cOpt.get());
-		} else {
-			// First save the new category and then add to set of categories (a fresh set)!
-			Category c = new Category();
-			c.setDescription(description);
-			
-			Category savedCategory = categoryRepo.save(c);
-			log.info("Saved Category - id: {}, name: {}", savedCategory.getId(), savedCategory.getDescription());
-			return cTocc.convert(savedCategory);
-		}
-	}
-	
-	
-	@Override
-	public UnitOfMeasureCommand findUom(String uom) {
-		var uomOptional = uomRepo.findByUomIgnoreCase(uom);
-		if (uomOptional.isPresent()) {
-			return uom2uomc.convert(uomOptional.get());
-		} else {
-			throw new NoSuchElementException("No such UnitOfMeasure defined: " + uom);
-		}
-	}
-
-	@Override
-	public UnitOfMeasureCommand findUom(String uomId, boolean flag) {
-		var uomOptional = uomRepo.findById(uomId);
-		if (uomOptional.isPresent()) {
-			return uom2uomc.convert(uomOptional.get());
-		} else {
-			throw new NoSuchElementException("No such UnitOfMeasure defined: " + uomId);
-		}
+	public Mono<CategoryCommand> findCategoryByDescription(String description) {
+		return categoryRepo.findByDescriptionIgnoreCase(description)
+				.switchIfEmpty(Mono.defer(() -> categoryRepo.save(new Category(description))))
+				.map(cTocc::convert);
 	}
 	
 	@Override
-	public List<UnitOfMeasureCommand> findAllUoms() {
-		List<UnitOfMeasureCommand> uomcList = new ArrayList<>();
-		for(var uomc : uomRepo.findAll()) {
-			uomcList.add(uom2uomc.convert(uomc));
-		}
-		return uomcList;
-	}
-
-	@Transactional
-	@Override
-	public RecipeCommand findRecipeCommandById(String id) {
-		return recipeToRecipeCommand.convert(findById(id));
+	public Mono<UnitOfMeasureCommand> findUom(String uom) {
+		return uomRepo.findByUomIgnoreCase(uom)
+				.switchIfEmpty(Mono.defer(() -> {
+					throw new NoSuchElementException("No such UnitOfMeasure defined: " + uom); 
+				})).map(uom2uomc::convert);
 	}
 
 	@Override
-	public void delete(String recipeId) {
-		recipeRepo.deleteById(recipeId);
-		 
-		log.info("Deleted Recipe: {}", recipeId);
-		
+	public Mono<UnitOfMeasureCommand> findUom(String uomId, boolean flag) {
+		return uomRepo.findById(uomId)
+				.switchIfEmpty(Mono.defer(() -> {
+					throw new NoSuchElementException("No such UnitOfMeasure defined: " + uomId);
+				})).map(uom2uomc::convert);
+	}
+	
+	@Override
+	public Flux<UnitOfMeasureCommand> findAllUoms() {
+		return uomRepo.findAll().map((uom2uomc::convert));
+	}
+
+	@Override
+	public Mono<RecipeCommand> findRecipeCommandById(String id) {
+		return this.findById(id).map(recipeToRecipeCommand::convert);
+	}
+
+	@Override
+	public Mono<Void> delete(String recipeId) {
+		return recipeRepo.deleteById(recipeId);
 	}
 	
 }

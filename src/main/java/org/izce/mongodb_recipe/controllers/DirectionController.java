@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.izce.mongodb_recipe.commands.DirectionCommand;
 import org.izce.mongodb_recipe.commands.RecipeCommand;
 import org.izce.mongodb_recipe.services.DirectionService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 public class DirectionController {
 	private final DirectionService directionService;
 
-	@Autowired
 	public DirectionController(DirectionService directionService) {
 		log.debug("Initializing DirectionController ...");
 		this.directionService = directionService;
@@ -43,7 +41,7 @@ public class DirectionController {
 			Model model) throws Exception {
 		
 		direction.setRecipeId(recipeId);
-		DirectionCommand savedDirection = directionService.saveDirectionCommand(direction);
+		DirectionCommand savedDirection = directionService.saveDirectionCommand(direction).block();
 		recipe.getDirections().add(savedDirection);
 		model.addAttribute("recipe", recipe);
 
@@ -58,7 +56,7 @@ public class DirectionController {
 			@ModelAttribute("recipe") RecipeCommand recipe,
 			Model model) throws Exception {
 		
-		DirectionCommand savedDirection = directionService.saveDirectionCommand(direction);
+		DirectionCommand savedDirection = directionService.saveDirectionCommand(direction).block();
 		recipe.getDirections().remove(direction);
 		recipe.getDirections().add(savedDirection);
 		model.addAttribute("recipe", recipe);
@@ -81,7 +79,7 @@ public class DirectionController {
 		if (!elementRemoved) {
 			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		} else {
-			directionService.delete(directionId);			
+			directionService.delete(directionId).block();			
 		}
 		return Map.of("id", directionId);
 	}

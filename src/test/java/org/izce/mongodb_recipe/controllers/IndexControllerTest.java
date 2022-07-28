@@ -10,8 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.izce.mongodb_recipe.model.Recipe;
 import org.izce.mongodb_recipe.services.RecipeService;
@@ -24,6 +24,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.ui.Model;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 public class IndexControllerTest {
 	@Mock
 	RecipeService recipeService;
@@ -31,17 +34,14 @@ public class IndexControllerTest {
 	Model model;
 	IndexController indexController;
 	MockMvc mockMvc;
+	ArgumentCaptor<List<Recipe>> argumentCaptor;
 	
+	@SuppressWarnings("unchecked")
 	@BeforeEach
 	public void setUp() throws Exception {
 		MockitoAnnotations.openMocks(this);
 		indexController = new IndexController(recipeService);
 		mockMvc = MockMvcBuilders.standaloneSetup(indexController).build();
-	}
-
-	@Test
-	public void testGetIndexPage() {
-		
 		Set<Recipe> recipes = new HashSet<Recipe>();
 		Recipe recipe1 = new Recipe();
 		recipe1.setId("1");
@@ -50,21 +50,23 @@ public class IndexControllerTest {
 		recipe2.setId("2");
 		recipes.add(recipe2);
 		
-		@SuppressWarnings("unchecked")
-		ArgumentCaptor<Iterable<Recipe>> argumentCaptor = ArgumentCaptor.forClass(Iterable.class);
+		argumentCaptor = ArgumentCaptor.forClass(List.class);
 		
-		when(recipeService.getRecipes()).thenReturn(recipes);
+		when(recipeService.getRecipes()).thenReturn(Flux.fromIterable(recipes));
+		when(recipeService.getRecipesCount()).thenReturn(Mono.just(2L));
+	}
+
+	@Test
+	public void testGetIndexPage() {
 		
 		String viewName = indexController.getIndexPage(model);
 		assertEquals("index", viewName);
 		
 		verify(model, times(1)).addAttribute(eq("recipes"), argumentCaptor.capture());
 		
-		Iterable<Recipe> recipesFromController = argumentCaptor.getValue();
-		AtomicInteger recipeCount = new AtomicInteger();
-		recipesFromController.forEach(e -> recipeCount.incrementAndGet());
+		List<Recipe> recipeList = argumentCaptor.getValue();
 		
-		assertEquals(2, recipeCount.get());
+		assertEquals(2, recipeList.size());
 	}
 	
 	@Test

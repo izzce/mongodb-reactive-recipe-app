@@ -10,7 +10,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import org.izce.mongodb_recipe.commands.RecipeCommand;
+import org.izce.mongodb_recipe.commands.UnitOfMeasureCommand;
 import org.izce.mongodb_recipe.exceptions.NotFoundException;
+import org.izce.mongodb_recipe.model.Recipe;
 import org.izce.mongodb_recipe.services.RecipeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,6 +22,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.ui.Model;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public class RecipeControllerTest {
 	@Mock
@@ -35,10 +40,17 @@ public class RecipeControllerTest {
 		recipeController = new RecipeController(recipeService);
 		mockMvc = MockMvcBuilders.standaloneSetup(recipeController)
 				.setControllerAdvice(new ControllerExceptionHandler()).build();
+		
+		// This is for satisfying "uomList" additions to the model.
+		UnitOfMeasureCommand piece = new UnitOfMeasureCommand("1", "Piece");
+		when(recipeService.findAllUoms()).thenReturn(Flux.just(piece));
 	}
 
 	@Test
 	public void testGetRecipe() throws Exception {
+		Recipe recipe = new Recipe();
+		recipe.setId("2");
+		when(recipeService.findById(anyString())).thenReturn(Mono.just(recipe));
 		mockMvc.perform(get("/recipe/1/show")).andExpect(status().isOk()).andExpect(view().name("recipe/show"));
 	}
 
@@ -53,7 +65,7 @@ public class RecipeControllerTest {
 		RecipeCommand recipeCommand = new RecipeCommand();
 		recipeCommand.setId("2");
 
-		when(recipeService.saveRecipeCommand(any())).thenReturn(recipeCommand);
+		when(recipeService.saveRecipeCommand(any())).thenReturn(Mono.just(recipeCommand));
 
 		mockMvc.perform(post("/recipe").sessionAttr("recipe", recipeCommand)
 				.contentType(MediaType.APPLICATION_FORM_URLENCODED).param("description", "some string"))
@@ -62,10 +74,10 @@ public class RecipeControllerTest {
 
 	@Test
 	public void testGetUpdateView() throws Exception {
-		RecipeCommand command = new RecipeCommand();
-		command.setId("2");
+		RecipeCommand recipeCommand = new RecipeCommand();
+		recipeCommand.setId("2");
 
-		when(recipeService.findRecipeCommandById(anyString())).thenReturn(command);
+		when(recipeService.findRecipeCommandById(anyString())).thenReturn(Mono.just(recipeCommand));
 
 		mockMvc.perform(get("/recipe/1/update")).andExpect(status().isOk()).andExpect(view().name("recipe/form"))
 				.andExpect(model().attributeExists("recipe"));

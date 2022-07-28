@@ -22,6 +22,8 @@ import org.springframework.ui.Model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import reactor.core.publisher.Mono;
+
 
 public class CategoryControllerTest {
 	@Mock
@@ -46,7 +48,7 @@ public class CategoryControllerTest {
 		cc.setId("1");
 		rc.getCategories().add(cc);
 		
-		when(recipeService.findCategoryByDescription(any())).thenReturn(cc);
+		when(recipeService.findCategoryByDescription(any())).thenReturn(Mono.just(cc));
 		
 		mockMvc.perform(post("/recipe/2/category/add")
 						.sessionAttr("recipe", rc)
@@ -64,7 +66,7 @@ public class CategoryControllerTest {
 		cc.setId("2");
 		//rc.getCategories().add(cc);
 		
-		when(recipeService.findCategoryByDescription(any())).thenReturn(cc);
+		when(recipeService.findCategoryByDescription(any())).thenReturn(Mono.just(cc));
 		
 		mockMvc.perform(post("/recipe/2/category/add")
 						.sessionAttr("recipe", rc)

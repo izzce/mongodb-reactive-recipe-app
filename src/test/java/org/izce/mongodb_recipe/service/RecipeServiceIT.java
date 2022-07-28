@@ -7,10 +7,10 @@ import org.izce.mongodb_recipe.commands.RecipeCommand;
 import org.izce.mongodb_recipe.converters.RecipeCommandToRecipe;
 import org.izce.mongodb_recipe.converters.RecipeToRecipeCommand;
 import org.izce.mongodb_recipe.model.Recipe;
-import org.izce.mongodb_recipe.repositories.CategoryRepository;
-import org.izce.mongodb_recipe.repositories.IngredientRepository;
-import org.izce.mongodb_recipe.repositories.RecipeRepository;
-import org.izce.mongodb_recipe.repositories.UnitOfMeasureRepository;
+import org.izce.mongodb_recipe.repositories.reactive.CategoryReactiveRepository;
+import org.izce.mongodb_recipe.repositories.reactive.IngredientReactiveRepository;
+import org.izce.mongodb_recipe.repositories.reactive.RecipeReactiveRepository;
+import org.izce.mongodb_recipe.repositories.reactive.UomReactiveRepository;
 import org.izce.mongodb_recipe.services.RecipeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.AutoConfigureDataMongo;
 import org.springframework.boot.test.context.SpringBootTest;
 
-// FIXME Fix @DBRef UnitOfMeasure uom while loading Ingredient model. 
 @Disabled
 @AutoConfigureDataMongo
 @SpringBootTest()
@@ -31,7 +30,7 @@ public class RecipeServiceIT {
     RecipeService recipeService;
 
     @Autowired
-    RecipeRepository recipeRepository;
+    RecipeReactiveRepository recipeRepository;
 
     @Autowired
     RecipeCommandToRecipe recipeCommandToRecipe;
@@ -40,13 +39,13 @@ public class RecipeServiceIT {
     RecipeToRecipeCommand recipeToRecipeCommand;
     
     @Autowired
-    CategoryRepository categoryRepo;
+    CategoryReactiveRepository categoryRepo;
     
     @Autowired
-    UnitOfMeasureRepository uomRepo;
+    UomReactiveRepository uomRepo;
     
     @Autowired
-    IngredientRepository ingredientRepo;
+    IngredientReactiveRepository ingredientRepo;
 
 	
     @BeforeEach
@@ -61,12 +60,12 @@ public class RecipeServiceIT {
     @Test
     public void testSaveOfDescription() throws Exception {
         //given
-        for (Recipe recipe : recipeRepository.findAll()) {
+        for (Recipe recipe : recipeRepository.findAll().collectList().block()) {
 	        RecipeCommand recipeCommand = recipeToRecipeCommand.convert(recipe);
 	
 	        //when
 	        recipeCommand.setDescription(NEW_DESCRIPTION);
-	        RecipeCommand savedRecipeCommand = recipeService.saveRecipeCommand(recipeCommand);
+	        RecipeCommand savedRecipeCommand = recipeService.saveRecipeCommand(recipeCommand).block();
 	
 	        //then
 	        assertEquals(NEW_DESCRIPTION, savedRecipeCommand.getDescription());

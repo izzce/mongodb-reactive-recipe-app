@@ -22,6 +22,8 @@ import org.springframework.ui.Model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import reactor.core.publisher.Mono;
+
 public class NoteControllerTest {
 	@Mock
 	NoteService noteService;
@@ -41,13 +43,13 @@ public class NoteControllerTest {
 
 	@Test
 	public void testAddNote() throws Exception {
-		NoteCommand dc = new NoteCommand("1", "Cook", recipe.getId());
-		recipe.getNotes().add(dc);
+		NoteCommand nc = new NoteCommand("1", "Cook", recipe.getId());
+		recipe.getNotes().add(nc);
 
-		when(noteService.saveNoteCommand(any())).thenReturn(dc);
+		when(noteService.saveNoteCommand(any())).thenReturn(Mono.just(nc));
 
 		mockMvc.perform(post("/recipe/2/note/add").sessionAttr("recipe", recipe).contentType(MediaType.APPLICATION_JSON)
-				.content(asJsonString(dc))).andExpect(status().isOk()).andExpect(jsonPath("$.id", is("1")))
+				.content(asJsonString(nc))).andExpect(status().isOk()).andExpect(jsonPath("$.id", is("1")))
 				.andExpect(jsonPath("$.note", is("Cook")));
 	}
 
@@ -56,12 +58,12 @@ public class NoteControllerTest {
 		NoteCommand dc = new NoteCommand("1", "Cook", recipe.getId());
 		recipe.getNotes().add(dc);
 
-		NoteCommand dcUpdated = new NoteCommand("1", "Cook mildly.", recipe.getId());
+		NoteCommand ncUpdated = new NoteCommand("1", "Cook mildly.", recipe.getId());
 
-		when(noteService.saveNoteCommand(any())).thenReturn(dcUpdated);
+		when(noteService.saveNoteCommand(any())).thenReturn(Mono.just(ncUpdated));
 
 		mockMvc.perform(post("/recipe/2/note/1/update").sessionAttr("recipe", recipe)
-				.contentType(MediaType.APPLICATION_JSON).content(asJsonString(dcUpdated))).andExpect(status().isOk())
+				.contentType(MediaType.APPLICATION_JSON).content(asJsonString(ncUpdated))).andExpect(status().isOk())
 				.andExpect(jsonPath("$.id", is("1"))).andExpect(jsonPath("$.note", is("Cook mildly.")));
 
 	}
@@ -71,12 +73,16 @@ public class NoteControllerTest {
 		NoteCommand dc = new NoteCommand("2", "Cook", recipe.getId());
 		recipe.getNotes().add(dc);
 
+		when(noteService.delete(any())).thenReturn(Mono.empty());
+		
 		mockMvc.perform(delete("/recipe/2/note/2/delete").sessionAttr("recipe", recipe)).andExpect(status().isOk())
 				.andExpect(jsonPath("$.id", is("2")));
 	}
 
 	@Test
 	public void testDeleteMissingNote() throws Exception {
+		when(noteService.delete(any())).thenReturn(Mono.empty());
+		
 		mockMvc.perform(delete("/recipe/2/note/3/delete").sessionAttr("recipe", recipe)).andExpect(status().isNotFound())
 				.andExpect(jsonPath("$.id", is("3")));
 	}

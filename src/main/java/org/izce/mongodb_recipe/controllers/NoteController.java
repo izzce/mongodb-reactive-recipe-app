@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.izce.mongodb_recipe.commands.NoteCommand;
 import org.izce.mongodb_recipe.commands.RecipeCommand;
 import org.izce.mongodb_recipe.services.NoteService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 public class NoteController {
 	private final NoteService noteService;
 
-	@Autowired
 	public NoteController(NoteService noteService) {
 		log.debug("Initializing NoteController ...");
 		this.noteService = noteService;
@@ -43,7 +41,7 @@ public class NoteController {
 			Model model) throws Exception {
 		
 		note.setRecipeId(recipeId);
-		NoteCommand savedNote = noteService.saveNoteCommand(note);
+		NoteCommand savedNote = noteService.saveNoteCommand(note).block();
 		recipe.getNotes().add(savedNote);
 		model.addAttribute("recipe", recipe);
 
@@ -58,7 +56,7 @@ public class NoteController {
 			@ModelAttribute("recipe") RecipeCommand recipe,
 			Model model) throws Exception {
 		
-		NoteCommand savedNote = noteService.saveNoteCommand(note);
+		NoteCommand savedNote = noteService.saveNoteCommand(note).block();
 		recipe.getNotes().remove(note);
 		recipe.getNotes().add(savedNote);
 		model.addAttribute("recipe", recipe);
@@ -81,7 +79,7 @@ public class NoteController {
 		if (!elementRemoved) {
 			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		}
-		noteService.delete(noteId);
+		noteService.delete(noteId).block();
 		return Map.of("id", noteId);
 	}
 

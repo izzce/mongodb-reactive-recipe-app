@@ -60,14 +60,15 @@
 </div>
 	
 	
-<footer th:fragment="footer" class="footer footer-dark bg-dark mt-3 p-3">
+<footer th:fragment="footer" class="footer footer-dark bg-dark mt-4 p-2">
   <div class="container text-center text-muted">
-    <span class="h6 py-2 px-3 border-end border-secondary" th:text="#{layout.copyright}">Copyright &copy; 2022</span>
-    <span class="h6 py-2 px-3" th:text="#{layout.contact}">Contact</span>    
-  	<a href="https://github.com/izzce" target="_blank"><i class="font-xl btn btn-outline-secondary fab fa-github border-0 pulse"></i></a>
-	<a href="https://stackoverflow.com/users/4211402/izce" target="_blank"><i class="font-xl btn btn-outline-secondary fab fab fa-stack-overflow border-0 pulse"></i></a>
-	<span class="h6 py-2 px-1 border-end border-secondary"></span>
-	<img alt="mongodb logo" class="img-fluid px-2 pb-1" style="height: 4rem" src="" th:src="@{/images/MongoDB_Logo_RGB_Logo_Forest-Green.svg}">
+    <span class="h6 p-3 border-end border-secondary" th:text="#{layout.copyright}">Copyright &copy; 2022</span>
+    <span class="h6 p-3 border-end border-secondary">
+	    <a href="#" target="_blank"><i class="font-xl p-3 btn btn-outline-secondary far fa-address-card border-0 pulse"></i></a>  
+	  	<a href="https://github.com/izzce" target="_blank"><i class="font-xl p-3 btn btn-outline-secondary fab fa-github border-0 pulse"></i></a>
+		<a href="https://stackoverflow.com/users/4211402/izce" target="_blank"><i class="font-xl p-3 btn btn-outline-secondary fab fa-stack-overflow border-0 pulse"></i></a>
+	</span>
+	<img alt="mongodb logo" class="img-fluid p-2" style="height: 4rem" src="" th:src="@{/images/MongoDB_Logo_RGB_Logo_Forest-Green.svg}">
   </div>
 </footer>
 

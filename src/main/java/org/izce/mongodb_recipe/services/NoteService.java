@@ -3,9 +3,11 @@ package org.izce.mongodb_recipe.services;
 import org.izce.mongodb_recipe.commands.NoteCommand;
 import org.izce.mongodb_recipe.model.Note;
 
+import reactor.core.publisher.Mono;
+
 public interface NoteService {
-	Note findById(String id);
-	NoteCommand findNoteCommandById(String id);
-	NoteCommand saveNoteCommand(NoteCommand command);
-	void delete(String noteId);
+	Mono<Note> findById(String id);
+	Mono<NoteCommand> findNoteCommandById(String id);
+	Mono<NoteCommand> saveNoteCommand(NoteCommand command);
+	Mono<Void> delete(String noteId);
 }

@@ -1,28 +1,26 @@
 package org.izce.mongodb_recipe.services;
 
-import java.util.Optional;
+import java.util.NoSuchElementException;
 
 import org.izce.mongodb_recipe.commands.DirectionCommand;
 import org.izce.mongodb_recipe.converters.DirectionCommandToDirection;
 import org.izce.mongodb_recipe.converters.DirectionToDirectionCommand;
 import org.izce.mongodb_recipe.model.Direction;
-import org.izce.mongodb_recipe.repositories.DirectionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.izce.mongodb_recipe.repositories.reactive.DirectionReactiveRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
 public class DirectionServiceImpl implements DirectionService {
-    private final DirectionRepository directionRepo;
+    private final DirectionReactiveRepository directionRepo;
     private final DirectionCommandToDirection dc2d;
     private final DirectionToDirectionCommand d2dc;
 
-	@Autowired
 	public DirectionServiceImpl(
-			DirectionRepository ir,
+			DirectionReactiveRepository ir,
 			DirectionCommandToDirection dc2d,
 			DirectionToDirectionCommand d2dc) {
 		
@@ -33,33 +31,26 @@ public class DirectionServiceImpl implements DirectionService {
 	}
 	
 	@Override
-	public Direction findById(String id) {
-		Optional<Direction> directionOptional = directionRepo.findById(id);
-		return directionOptional.orElseThrow(() -> new RuntimeException("Direction not found: " + id));
+	public Mono<Direction> findById(String id) {
+		return directionRepo.findById(id).switchIfEmpty(Mono.defer(() -> {
+			throw new NoSuchElementException("Direction not found: " + id);
+		}));
 	}
 
 	@Override
-	public DirectionCommand findDirectionCommandById(String id) {
-		return d2dc.convert(findById(id));
+	public Mono<DirectionCommand> findDirectionCommandById(String id) {
+		return this.findById(id).map(d2dc::convert);
 	}
 	
 	@Override
-	@Transactional
-	public DirectionCommand saveDirectionCommand(DirectionCommand directionCommand) {
+	public Mono<DirectionCommand> saveDirectionCommand(DirectionCommand directionCommand) {
 		Direction direction = dc2d.convert(directionCommand);
-		direction = directionRepo.save(direction);
-		
-		log.info("Saved Direction: {}", direction);
-		
-		return d2dc.convert(direction);
+		return directionRepo.save(direction).map(d2dc::convert);
 	}
 	
 	@Override
-	@Transactional
-	public void delete(String directionId) {
-		directionRepo.deleteById(directionId);
-		 
-		log.info("Deleted Direction: {}", directionId);		 
+	public Mono<Void> delete(String directionId) {
+		return directionRepo.deleteById(directionId);
 	}
 }
 

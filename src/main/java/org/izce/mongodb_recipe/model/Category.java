@@ -4,7 +4,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.Data;
@@ -26,9 +25,9 @@ public class Category {
 	@NonNull
 	private String description;
 	
+	// Remove clyclic references from MongoDB Domain Objects
+	// to prevent StackOverFlowError. 
 	@ToString.Exclude 
 	@EqualsAndHashCode.Exclude
-	@DBRef
 	private Set<Recipe> recipes = new LinkedHashSet<Recipe>();
-
 }

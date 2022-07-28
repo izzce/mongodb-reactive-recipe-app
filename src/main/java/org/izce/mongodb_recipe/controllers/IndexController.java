@@ -1,7 +1,6 @@
 package org.izce.mongodb_recipe.controllers;
 
 import org.izce.mongodb_recipe.services.RecipeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 public class IndexController {
 	private final RecipeService recipeService;
 
-	@Autowired
 	public IndexController(RecipeService recipeService) {
 		log.debug("Initializing IndexController...");
 		this.recipeService = recipeService;
@@ -22,8 +20,8 @@ public class IndexController {
 	@RequestMapping({"/", "/index" })
 	public String getIndexPage(Model model) {
 		log.debug("Index page is requested!");
-		model.addAttribute("recipes", recipeService.getRecipes());
-		log.debug("Number of recipes found: {}", recipeService.getRecipesCount());
+		model.addAttribute("recipes", recipeService.getRecipes().collectList().block());
+		log.debug("Number of recipes found: {}", recipeService.getRecipesCount().block());
 		return "index";
 	}
 	

@@ -41,9 +41,9 @@ public class MongoDbReactiveRecipeApp {
 			storageService.init();
 		};
 	}
-	
-	@Bean
-	public CascadeSaveMongoEventListener cascadeSaveMongoEventListener() {
-	    return new CascadeSaveMongoEventListener();
-	}
+
+    @Bean
+    CascadeSaveMongoEventListener cascadeSaveMongoEventListener() {
+        return new CascadeSaveMongoEventListener();
+    }
 }

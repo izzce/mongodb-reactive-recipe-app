@@ -207,21 +207,21 @@ public class BootStrap_MongoDB implements ApplicationListener<ContextRefreshedEv
 
 	private void addIngredient(Recipe recipe, String description, float amount, UnitOfMeasure uom) {
 		var i = new Ingredient(description, amount, uom);
-		i.setRecipe(recipe);
+		//i.setRecipe(recipe);
 		i = ingredientRepo.save(i);
 		recipe.getIngredients().add(i);
 	}
 
 	private void addDirection(Recipe recipe, String direction) {
 		var d = new Direction(direction);
-		d.setRecipe(recipe);
+		//d.setRecipe(recipe);
 		d = directionRepo.save(d);
 		recipe.getDirections().add(d);
 	}
 
 	private void addNote(Recipe recipe, String note) {
 		var n = new Note(note);
-		n.setRecipe(recipe);
+		//n.setRecipe(recipe);
 		n = noteRepo.save(n);
 		recipe.getNotes().add(n);
 	}

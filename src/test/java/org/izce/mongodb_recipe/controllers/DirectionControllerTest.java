@@ -22,6 +22,8 @@ import org.springframework.ui.Model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import reactor.core.publisher.Mono;
+
 
 public class DirectionControllerTest {
 	@Mock
@@ -44,7 +46,7 @@ public class DirectionControllerTest {
 		DirectionCommand dc = new DirectionCommand("1", "Cook");
 		rc.getDirections().add(dc);
 		
-		when(directionService.saveDirectionCommand(any())).thenReturn(dc);
+		when(directionService.saveDirectionCommand(any())).thenReturn(Mono.just(dc));
 		
 		mockMvc.perform(post("/recipe/2/direction/add")
 						.sessionAttr("recipe", rc)
@@ -63,7 +65,7 @@ public class DirectionControllerTest {
 				
 		DirectionCommand dcUpdated = new DirectionCommand("1", "Cook mildly.");
 		
-		when(directionService.saveDirectionCommand(any())).thenReturn(dcUpdated);
+		when(directionService.saveDirectionCommand(any())).thenReturn(Mono.just(dcUpdated));
 
 		mockMvc.perform(post("/recipe/2/direction/1/update")
 				.sessionAttr("recipe", rc)
@@ -76,17 +78,17 @@ public class DirectionControllerTest {
     }
 	
 	@Test
-    public void testDeleteExistingDirection() throws Exception {
-		 RecipeCommand rc = new RecipeCommand("2");
-	        
-		 DirectionCommand dc = new DirectionCommand("2", "Cook");
+	public void testDeleteExistingDirection() throws Exception {
+		RecipeCommand rc = new RecipeCommand("2");
+
+		DirectionCommand dc = new DirectionCommand("2", "Cook");
 		rc.getDirections().add(dc);
-		 
-		 mockMvc.perform(delete("/recipe/2/direction/2/delete")
- 				.sessionAttr("recipe", rc))
-         .andExpect(status().isOk())
-         .andExpect(jsonPath("$.id", is("2")));
-    }
+		
+		when(directionService.delete(any())).thenReturn(Mono.empty());
+
+		mockMvc.perform(delete("/recipe/2/direction/2/delete").sessionAttr("recipe", rc)).andExpect(status().isOk())
+				.andExpect(jsonPath("$.id", is("2")));
+	}
 	
 	@Test
     public void testDeleteMissingDirection() throws Exception {

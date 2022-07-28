@@ -27,7 +27,7 @@ public class DirectionCommandToDirection implements Converter<DirectionCommand, 
         if (source.getRecipeId() != null) {
         	Recipe recipe = new Recipe();
         	recipe.setId(source.getRecipeId());
-        	direction.setRecipe(recipe);
+        	//direction.setRecipe(recipe);
         }
         return direction;
     }

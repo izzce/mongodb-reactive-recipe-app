@@ -82,7 +82,8 @@ body.body-show::before {
 
 				  <li class="list-group-item bg-grad p-2">
 					<div class="col-5 float-start">
-			        	<span class="h6" th:text="#{recipe.categories}">Categories:</span>
+			        	<span class="h6" th:text="#{recipe.categories}">Categories:&nsbp;&nsbp;</span>
+			        	<span class="badge rounded-pill bg-primary mx-1" th:text="${recipe.categories.size}">3</span>
 			        </div>
 		            <div class="col-7 float-end font-lg">
 						<span th:remove="all">Turkish</span>
@@ -100,7 +101,8 @@ body.body-show::before {
 	        
         <div class="card m-2 mt-3 shadow border">
 			<div class="card-header bg-warning text-dark shadow">
-               	<span class="h5" th:text="#{recipe.directions}">Directions</span>
+               	<span class="h5" th:text="#{recipe.directions}  ">Directions</span>
+               	<span class="badge rounded-pill bg-dark mx-1" th:text="${recipe.directions.size}">3</span>
                	<button type="button" class="btn btn-warning float-end px-1 py-0 mr-n1 collapsed" data-bs-toggle="collapse" data-bs-target="#card1">
 					<i class="fas fa-1x"></i>
 				</button>
@@ -132,6 +134,7 @@ body.body-show::before {
 		<div class="card m-2 shadow">
 			<div class="card-header bg-primary text-light shadow">
 				<span class="h5" th:text="#{recipe.ingredients}">Ingredients</span>
+				<span class="badge rounded-pill bg-light text-dark mx-1" th:text="${recipe.ingredients.size}">3</span>
 				<button type="button" class="btn btn-primary float-end px-1 py-0 mr-n1 collapsed" data-bs-toggle="collapse" data-bs-target="#card3">
 					<i class="fas fa-1x"></i>
 				</button>
@@ -153,6 +156,7 @@ body.body-show::before {
 		<div class="card m-2 shadow">
 		    <div class="card-header bg-danger text-light shadow">
 		        <span class="h5" th:text="#{recipe.notes}">Notes</span>
+		        <span class="badge rounded-pill bg-light text-dark mx-1" th:text="${recipe.ingredients.size}">3</span>
 				<button type="button" class="btn btn-danger float-end px-1 py-0 mr-n1 collapsed" data-bs-toggle="collapse" data-bs-target="#card2">
 					<i class="fas fa-1x"></i>
 				</button>

@@ -11,7 +11,6 @@ import org.izce.mongodb_recipe.commands.IngredientCommand;
 import org.izce.mongodb_recipe.commands.RecipeCommand;
 import org.izce.mongodb_recipe.commands.UnitOfMeasureCommand;
 import org.izce.mongodb_recipe.services.IngredientService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -31,7 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 public class IngredientController {
 	private final IngredientService ingredientService;
 
-	@Autowired
 	public IngredientController(IngredientService ingredientService) {
 		log.debug("Initializing IngredientController ...");
 		this.ingredientService = ingredientService;

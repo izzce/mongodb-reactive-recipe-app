@@ -13,7 +13,6 @@ import org.izce.mongodb_recipe.repositories.IngredientRepository;
 import org.izce.mongodb_recipe.repositories.NoteRepository;
 import org.izce.mongodb_recipe.repositories.RecipeRepository;
 import org.izce.mongodb_recipe.repositories.UnitOfMeasureRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +29,6 @@ public class DataLoader implements CommandLineRunner {
 	private final CategoryRepository categoryRepo;
 	private final DirectionRepository directionRepo;
 
-	@Autowired
 	public DataLoader(RecipeRepository recipeRepo, IngredientRepository ingredientRepo, UnitOfMeasureRepository uomRepo,
 			NoteRepository notesRepo, CategoryRepository categoryRepo, DirectionRepository directionRepo) {
 		log.debug("Initializing DataLoader...");
@@ -155,21 +153,21 @@ public class DataLoader implements CommandLineRunner {
 
 	private void addIngredient(Recipe recipe, String description, float amount, UnitOfMeasure uom) {
 		var i = new Ingredient(description, amount, uom);
-		i.setRecipe(recipe);
+		//i.setRecipe(recipe);
 		i = ingredientRepo.save(i);
 		recipe.getIngredients().add(i);
 	}
 
 	private void addDirection(Recipe recipe, String direction) {
 		var d = new Direction(direction);
-		d.setRecipe(recipe);
+		//d.setRecipe(recipe);
 		d = directionRepo.save(d);
 		recipe.getDirections().add(d);
 	}
 
 	private void addNote(Recipe recipe, String note) {
 		var n = new Note(note);
-		n.setRecipe(recipe);
+		//n.setRecipe(recipe);
 		n = notesRepo.save(n);
 		recipe.getNotes().add(n);
 	}

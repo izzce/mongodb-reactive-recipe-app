@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.izce.mongodb_recipe.commands.CategoryCommand;
 import org.izce.mongodb_recipe.commands.RecipeCommand;
 import org.izce.mongodb_recipe.services.RecipeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -27,7 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 public class CategoryController {
 	private final RecipeService recipeService;
 
-	@Autowired
 	public CategoryController(RecipeService recipeService) {
 		log.debug("CategoryController ...");
 		this.recipeService = recipeService;
@@ -45,7 +43,7 @@ public class CategoryController {
 		if (recipe.getCategories().stream().anyMatch(e -> e.getDescription().equalsIgnoreCase(category.getDescription()))) {
 			return Map.of("status", "PRESENT");
 		} else {
-			CategoryCommand cc = recipeService.findCategoryByDescription(category.getDescription());
+			CategoryCommand cc = recipeService.findCategoryByDescription(category.getDescription()).block();
 			recipe.getCategories().add(cc);
 
 			return Map.of("id", cc.getId().toString(), "description", cc.getDescription(), "status", "OK");

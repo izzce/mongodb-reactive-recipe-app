@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.izce.mongodb_recipe.commands.RecipeCommand;
@@ -28,17 +27,20 @@ import org.izce.mongodb_recipe.converters.UnitOfMeasureToUnitOfMeasureCommand;
 import org.izce.mongodb_recipe.model.Category;
 import org.izce.mongodb_recipe.model.Recipe;
 import org.izce.mongodb_recipe.model.UnitOfMeasure;
-import org.izce.mongodb_recipe.repositories.CategoryRepository;
-import org.izce.mongodb_recipe.repositories.DirectionRepository;
-import org.izce.mongodb_recipe.repositories.IngredientRepository;
-import org.izce.mongodb_recipe.repositories.NoteRepository;
-import org.izce.mongodb_recipe.repositories.RecipeRepository;
-import org.izce.mongodb_recipe.repositories.UnitOfMeasureRepository;
+import org.izce.mongodb_recipe.repositories.reactive.CategoryReactiveRepository;
+import org.izce.mongodb_recipe.repositories.reactive.DirectionReactiveRepository;
+import org.izce.mongodb_recipe.repositories.reactive.IngredientReactiveRepository;
+import org.izce.mongodb_recipe.repositories.reactive.NoteReactiveRepository;
+import org.izce.mongodb_recipe.repositories.reactive.RecipeReactiveRepository;
+import org.izce.mongodb_recipe.repositories.reactive.UomReactiveRepository;
 import org.izce.mongodb_recipe.services.RecipeServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public class RecipeServiceImplTest {
 	static final String RECIPE_NAME = "Minestrone Soup";
@@ -52,12 +54,12 @@ public class RecipeServiceImplTest {
 	Category category, category2;
 	UnitOfMeasure uom1, uom2;
 	
-	@Mock RecipeRepository repository;
-	@Mock CategoryRepository catRepo;
-	@Mock IngredientRepository ingredientRepo;
-	@Mock UnitOfMeasureRepository uomRepo;
-	@Mock NoteRepository noteRepo;
-	@Mock DirectionRepository directionRepo;
+	@Mock RecipeReactiveRepository repository;
+	@Mock CategoryReactiveRepository catRepo;
+	@Mock IngredientReactiveRepository ingredientRepo;
+	@Mock UomReactiveRepository uomRepo;
+	@Mock NoteReactiveRepository noteRepo;
+	@Mock DirectionReactiveRepository directionRepo;
     RecipeToRecipeCommand recipeToRecipeCommand;
     RecipeCommandToRecipe recipeCommandToRecipe;
     UnitOfMeasureToUnitOfMeasureCommand uom2uomc;
@@ -98,10 +100,10 @@ public class RecipeServiceImplTest {
 
 	@Test
 	void testGetRecipes() {
-		when(repository.findAll()).thenReturn(List.of(recipe));
+		when(repository.findAll()).thenReturn(Flux.just(recipe));
 		
 		AtomicInteger recipeCount = new AtomicInteger();
-		service.getRecipes().forEach(r -> recipeCount.addAndGet(1));
+		service.getRecipes().map(r -> recipeCount.addAndGet(1)).blockLast();
 		
 		assertEquals(recipeCount.get(), 1);
 		
@@ -110,46 +112,46 @@ public class RecipeServiceImplTest {
 	
 	@Test
 	void testGetRecipesCount() {
-		when(repository.count()).thenReturn(1L);
+		when(repository.count()).thenReturn(Mono.just(1L));
 		
-		assertEquals(1L, service.getRecipesCount());
+		assertEquals(1L, service.getRecipesCount().block());
 		
 		verify(repository, times(1)).count();
 	}
 	
 	@Test
 	void testFindById() {
-		when(repository.findById(anyString())).thenReturn(Optional.of(recipe));
+		when(repository.findById(anyString())).thenReturn(Mono.just(recipe));
 		
-		assertEquals(recipe.getDescription(), service.findById("1").getDescription());
+		assertEquals(recipe.getDescription(), service.findById("1").block().getDescription());
 		
 		verify(repository, times(1)).findById(anyString());
 	}
 	
 	@Test
 	void testFindRecipeCommandById() {
-		when(repository.findById(anyString())).thenReturn(Optional.of(recipe));
+		when(repository.findById(anyString())).thenReturn(Mono.just(recipe));
 		
-		assertEquals(recipe.getDescription(), service.findRecipeCommandById("1").getDescription());
+		assertEquals(recipe.getDescription(), service.findRecipeCommandById("1").block().getDescription());
 		
 		verify(repository, times(1)).findById(anyString());
 	}
 	
 	@Test
 	void testFindCategoryByDescription_Existing() {
-		when(catRepo.findByDescriptionIgnoreCase(anyString())).thenReturn(Optional.of(category));
+		when(catRepo.findByDescriptionIgnoreCase(anyString())).thenReturn(Mono.just(category));
 		var categoryReturned = service.findCategoryByDescription(CATEGORY_NAME);
-		assertEquals(category.getDescription(), categoryReturned.getDescription());
+		assertEquals(category.getDescription(), categoryReturned.block().getDescription());
 		
 		verify(catRepo, times(1)).findByDescriptionIgnoreCase(anyString());
 	}
 	
 	@Test
 	void testFindCategoryByDescription_New() {
-		when(catRepo.findByDescriptionIgnoreCase(anyString())).thenReturn(Optional.empty());
-		when(catRepo.save(any(Category.class))).thenReturn(category2);
+		when(catRepo.findByDescriptionIgnoreCase(anyString())).thenReturn(Mono.empty());
+		when(catRepo.save(any(Category.class))).thenReturn(Mono.just(category2));
 		
-		assertEquals(CATEGORY_NAME2, service.findCategoryByDescription(CATEGORY_NAME2).getDescription());
+		assertEquals(CATEGORY_NAME2, service.findCategoryByDescription(CATEGORY_NAME2).block().getDescription());
 		
 		verify(catRepo, times(1)).findByDescriptionIgnoreCase(anyString());
 		verify(catRepo, times(1)).save(any(Category.class));
@@ -157,24 +159,24 @@ public class RecipeServiceImplTest {
 	
 	@Test
 	void testFindUomString() {
-		when(uomRepo.findByUomIgnoreCase(anyString())).thenReturn(Optional.of(uom1));
-		assertEquals(uom1.getUom(), service.findUom(anyString()).getUom());
+		when(uomRepo.findByUomIgnoreCase(anyString())).thenReturn(Mono.just(uom1));
+		assertEquals(uom1.getUom(), service.findUom(anyString()).block().getUom());
 		
 		verify(uomRepo, times(1)).findByUomIgnoreCase(anyString());
 	}
 
 	@Test
 	void testFindUomLong() {
-		when(uomRepo.findById(anyString())).thenReturn(Optional.of(uom1));
-		assertEquals(uom1.getUom(), service.findUom("Spoon", true).getUom());
+		when(uomRepo.findById(anyString())).thenReturn(Mono.just(uom1));
+		assertEquals(uom1.getUom(), service.findUom("Spoon", true).block().getUom());
 		
 		verify(uomRepo, times(1)).findById(anyString());
 	}
 
 	@Test
 	void testFindAllUoms() {
-		when(uomRepo.findAll()).thenReturn(List.of(uom1));
-		List<UnitOfMeasureCommand> uomList = service.findAllUoms();
+		when(uomRepo.findAll()).thenReturn(Flux.just(uom1));
+		List<UnitOfMeasureCommand> uomList = service.findAllUoms().collectList().block();
 		
 		assertEquals(List.of(uom1), List.of(uomc2uom.convert(uomList.get(0))));
 		
@@ -189,12 +191,12 @@ public class RecipeServiceImplTest {
 	
 	@Test
 	void testSaveRecipeCommand() {
-		when(repository.save(any(Recipe.class))).thenReturn(recipe);
-		when(catRepo.findByDescriptionIgnoreCase(CATEGORY_NAME)).thenReturn(Optional.of(category));
-		when(catRepo.findByDescriptionIgnoreCase(CATEGORY_NAME2)).thenReturn(Optional.empty());
-		when(catRepo.save(any(Category.class))).thenReturn(category2);
+		when(repository.save(any(Recipe.class))).thenReturn(Mono.just(recipe));
+		when(catRepo.findByDescriptionIgnoreCase(CATEGORY_NAME)).thenReturn(Mono.just(category));
+		when(catRepo.findByDescriptionIgnoreCase(CATEGORY_NAME2)).thenReturn(Mono.empty());
+		when(catRepo.save(any(Category.class))).thenReturn(Mono.just(category2));
 		
-		RecipeCommand savedRecipeCommand  = service.saveRecipeCommand(recipeToRecipeCommand.convert(recipe));
+		RecipeCommand savedRecipeCommand  = service.saveRecipeCommand(recipeToRecipeCommand.convert(recipe)).block();
 		
 		assertEquals(recipe.getDescription(), savedRecipeCommand.getDescription());
 		

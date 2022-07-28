@@ -25,6 +25,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.ui.Model;
 
+import reactor.core.publisher.Mono;
+
 public class ImageControllerTest {
 	static final String TEST_FILE_NAME = "testing.txt";
 
@@ -50,7 +52,7 @@ public class ImageControllerTest {
 				.setControllerAdvice(new ControllerExceptionHandler())
 				.build();
 		recipe = new RecipeCommand("1");
-		when(recipeService.findRecipeCommandById(anyString())).thenReturn(recipe);
+		when(recipeService.findRecipeCommandById(anyString())).thenReturn(Mono.just(recipe));
 		when(storageService.load(anyString())).thenReturn(Paths.get(new StorageProperties().getLocation(), TEST_FILE_NAME));
 	}
 	

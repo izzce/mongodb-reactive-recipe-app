@@ -14,7 +14,6 @@ import org.izce.mongodb_recipe.commands.RecipeCommand;
 import org.izce.mongodb_recipe.services.ImageService;
 import org.izce.mongodb_recipe.services.RecipeService;
 import org.izce.mongodb_recipe.services.StorageService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -40,7 +39,6 @@ public class ImageController {
 	private final ImageService imageService;
 	private final StorageService storageService;
 
-	@Autowired
 	public ImageController(RecipeService recipeService, ImageService imageService, StorageService storageService) {
 		log.debug("ImageController...");
 		this.recipeService = recipeService;
@@ -98,7 +96,7 @@ public class ImageController {
 			@PathVariable String id, 
 			HttpServletResponse response, 
 			Model model) throws IOException {
-		RecipeCommand recipeCommand = recipeService.findRecipeCommandById(id);
+		RecipeCommand recipeCommand = recipeService.findRecipeCommandById(id).block();
 
 		if (recipeCommand.getImage() != null) {
 			byte[] byteArray = new byte[recipeCommand.getImage().length];

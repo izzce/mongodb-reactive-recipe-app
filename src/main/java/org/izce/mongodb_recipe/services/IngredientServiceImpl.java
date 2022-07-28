@@ -1,5 +1,7 @@
 package org.izce.mongodb_recipe.services;
 
+import java.util.NoSuchElementException;
+
 import org.izce.mongodb_recipe.commands.IngredientCommand;
 import org.izce.mongodb_recipe.commands.UnitOfMeasureCommand;
 import org.izce.mongodb_recipe.converters.IngredientCommandToIngredient;
@@ -8,7 +10,6 @@ import org.izce.mongodb_recipe.converters.UnitOfMeasureToUnitOfMeasureCommand;
 import org.izce.mongodb_recipe.model.Ingredient;
 import org.izce.mongodb_recipe.repositories.reactive.IngredientReactiveRepository;
 import org.izce.mongodb_recipe.repositories.reactive.UomReactiveRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +26,6 @@ public class IngredientServiceImpl implements IngredientService {
     private final IngredientToIngredientCommand ing2ingc;
     private final UnitOfMeasureToUnitOfMeasureCommand uom2uomc;
 
-	@Autowired
 	public IngredientServiceImpl(
 			IngredientReactiveRepository ir,
 			IngredientCommandToIngredient ingc2ing,
@@ -71,22 +71,27 @@ public class IngredientServiceImpl implements IngredientService {
 	
 	@Override
 	public Mono<UnitOfMeasureCommand> findUom(String uom) {
-		return uomRepo.findByUomIgnoreCase(uom).map(uom2uomc::convert);
-		
-		//throw new NoSuchElementException("No such UnitOfMeasure defined: " + uom);
+		return uomRepo.findByUomIgnoreCase(uom)
+				.map(uom2uomc::convert)
+				.switchIfEmpty(Mono.defer(() -> {
+			throw new NoSuchElementException("No such UnitOfMeasure defined: " + uom);
+		}));
 	}
 
 	@Override
 	public Mono<UnitOfMeasureCommand> findUom(String uomId, boolean flag) {
-		return uomRepo.findById(uomId).map(uom2uomc::convert);
-		
-		//throw new NoSuchElementException("No such UnitOfMeasure defined: " + uomId);
+		return uomRepo.findById(uomId)
+				.map(uom2uomc::convert)
+				.switchIfEmpty(Mono.defer(() -> {
+			throw new NoSuchElementException("No such UnitOfMeasure defined: " + uomId);
+		}));
 	}
 	
 	@Override
 	public Flux<UnitOfMeasureCommand> findAllUoms() {
 		return uomRepo.findAll().map(uom2uomc::convert);
 	}
+
 	
 }
 

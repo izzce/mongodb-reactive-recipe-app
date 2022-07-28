@@ -1,28 +1,26 @@
 package org.izce.mongodb_recipe.services;
 
-import java.util.Optional;
+import java.util.NoSuchElementException;
 
 import org.izce.mongodb_recipe.commands.NoteCommand;
 import org.izce.mongodb_recipe.converters.NoteCommandToNote;
 import org.izce.mongodb_recipe.converters.NoteToNoteCommand;
 import org.izce.mongodb_recipe.model.Note;
-import org.izce.mongodb_recipe.repositories.NoteRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.izce.mongodb_recipe.repositories.reactive.NoteReactiveRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
 public class NoteServiceImpl implements NoteService {
-    private final NoteRepository noteRepo;
+    private final NoteReactiveRepository noteRepo;
     private final NoteCommandToNote nc2n;
     private final NoteToNoteCommand n2nc;
 
-	@Autowired
 	public NoteServiceImpl(
-			NoteRepository ir,
+			NoteReactiveRepository ir,
 			NoteCommandToNote nc2n,
 			NoteToNoteCommand n2nc) {
 		
@@ -33,33 +31,27 @@ public class NoteServiceImpl implements NoteService {
 	}
 	
 	@Override
-	public Note findById(String id) {
-		Optional<Note> noteOptional = noteRepo.findById(id);
-		return noteOptional.orElseThrow(() -> new RuntimeException("Note not found: " + id));
+	public Mono<Note> findById(String id) {
+		return noteRepo.findById(id).switchIfEmpty(Mono.defer(() -> {
+			throw new NoSuchElementException("Note not found: " + id);
+		}));
+
 	}
 
 	@Override
-	public NoteCommand findNoteCommandById(String id) {
-		return n2nc.convert(findById(id));
+	public Mono<NoteCommand> findNoteCommandById(String id) {
+		return this.findById(id).map(n2nc::convert);
 	}
 	
 	@Override
-	@Transactional
-	public NoteCommand saveNoteCommand(NoteCommand noteCommand) {
+	public Mono<NoteCommand> saveNoteCommand(NoteCommand noteCommand) {
 		Note note = nc2n.convert(noteCommand);
-		note = noteRepo.save(note);
-		
-		log.info("Saved Note: {}", note);
-		
-		return n2nc.convert(note);
+		return noteRepo.save(note).map(n2nc::convert);
 	}
 	
 	@Override
-	@Transactional
-	public void delete(String noteId) {
-		noteRepo.deleteById(noteId);
-		 
-		log.info("Deleted Note: {}", noteId);
+	public Mono<Void> delete(String noteId) {
+		return noteRepo.deleteById(noteId);
 	}
 }
 
