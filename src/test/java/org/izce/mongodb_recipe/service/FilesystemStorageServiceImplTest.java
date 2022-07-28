@@ -30,15 +30,15 @@ public class FilesystemStorageServiceImplTest {
 	}
 
 	@Test
-	public void loadNonExistent() {
-		assertThat(service.load("foo.txt")).doesNotExist();
+	public void loadNonExistent() throws Exception {
+		assertThat(service.load("foo.txt").block()).doesNotExist();
 	}
 
 	@Test
-	public void saveAndLoad() {
+	public void saveAndLoad() throws Exception {
 		service.store(new MockMultipartFile("foo", "foo.txt", MediaType.TEXT_PLAIN_VALUE,
 				"Hello, World".getBytes()));
-		assertThat(service.load("foo.txt")).exists();
+		assertThat(service.load("foo.txt").block()).exists();
 	}
 
 	@Test

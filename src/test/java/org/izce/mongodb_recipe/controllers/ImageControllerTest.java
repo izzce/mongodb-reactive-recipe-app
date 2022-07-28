@@ -53,7 +53,8 @@ public class ImageControllerTest {
 				.build();
 		recipe = new RecipeCommand("1");
 		when(recipeService.findRecipeCommandById(anyString())).thenReturn(Mono.just(recipe));
-		when(storageService.load(anyString())).thenReturn(Paths.get(new StorageProperties().getLocation(), TEST_FILE_NAME));
+		when(imageService.save(anyString(), any())).thenReturn(Mono.empty());
+		when(storageService.load(anyString())).thenReturn(Mono.just(Paths.get(new StorageProperties().getLocation(), TEST_FILE_NAME)));
 	}
 	
 	@Test

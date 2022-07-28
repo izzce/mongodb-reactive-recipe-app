@@ -1,23 +1,26 @@
 package org.izce.mongodb_recipe.services;
 
+import java.io.IOException;
 import java.nio.file.Path;
-import java.util.stream.Stream;
 
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 public interface StorageService {
 	
-	void init();
+	Mono<Void> init();
 
-	void store(MultipartFile file);
+	Mono<Void> store(MultipartFile file);
 	
-	Stream<Path> loadAll();
+	Flux<Path> loadAll() throws IOException;
 
-	Path load(String filename);
+	Mono<Path> load(String filename) throws IOException;
 
-	Resource loadAsResource(String filename);
+	Mono<Resource> loadAsResource(String filename) throws IOException;
 
-	void deleteAll();
+	Mono<Void> deleteAll();
 	
 }

@@ -9,6 +9,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.izce.mongodb_recipe.commands.RecipeCommand;
 import org.izce.mongodb_recipe.services.ImageService;
@@ -49,10 +50,15 @@ public class ImageController {
 	@GetMapping("/recipe/image/{filename:.+}")
 	@ResponseBody
 	public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
-
-		Resource file = storageService.loadAsResource(filename);
-		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
-				"attachment; filename=\"" + file.getFilename() + "\"").body(file);
+		try {
+			Resource file = storageService.loadAsResource(filename).block();
+			return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
+					"attachment; filename=\"" + file.getFilename() + "\"").body(file);
+		} catch (IOException e) {
+			log.error("Error", e);
+			return ResponseEntity.notFound().build();
+		}
+		
 	}
 	
 	@PostMapping("recipe/image")
@@ -64,13 +70,18 @@ public class ImageController {
 			log.debug("Storing image file: " + imageFiles[i].getOriginalFilename(), imageFiles[i]);
 			storageService.store(imageFiles[i]);
 			
-			Path imagePath = storageService.load(imageFiles[i].getOriginalFilename());
-			log.debug("Image stored at local path: " + imagePath);
-			
-			
-			String urlPath = MvcUriComponentsBuilder.fromMethodName(ImageController.class, "serveFile", imagePath.getFileName().toString()).build().toUri().toString();
+			Path imagePath;
+			try {
+				imagePath = storageService.load(imageFiles[i].getOriginalFilename()).block();
+				log.debug("Image stored at local path: " + imagePath);
+				String urlPath = MvcUriComponentsBuilder.fromMethodName(ImageController.class, "serveFile", 
+						imagePath.getFileName().toString()).build().toUri().toString();
 
-			map.put("imageurl_" + i, urlPath);
+				map.put("imageurl_" + i, urlPath);
+			} catch (IOException e) {
+				log.error("Error", e);
+			}
+			
 		}
 		
 		map.put("status", "OK");
@@ -84,7 +95,7 @@ public class ImageController {
 			@PathVariable String id, 
 			@RequestParam("image[]") MultipartFile [] imageFiles) {
 		for (var imageFile : imageFiles) {
-			imageService.save(id, imageFile);
+			imageService.save(id, imageFile).block();
 			// TODO how to return the url of new image?
 		}
 		return Map.of("imageurl", "imageurl", "status", "OK");
@@ -99,13 +110,7 @@ public class ImageController {
 		RecipeCommand recipeCommand = recipeService.findRecipeCommandById(id).block();
 
 		if (recipeCommand.getImage() != null) {
-			byte[] byteArray = new byte[recipeCommand.getImage().length];
-
-			int i = 0;
-			for (Byte wrappedByte : recipeCommand.getImage()) {
-				byteArray[i++] = wrappedByte; // auto unboxing
-			}
-
+			byte[] byteArray = ArrayUtils.toPrimitive(recipeCommand.getImage());
 			InputStream is = new ByteArrayInputStream(byteArray);
 			IOUtils.copy(is, response.getOutputStream());
 		}
