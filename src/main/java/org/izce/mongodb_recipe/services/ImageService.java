@@ -1,6 +1,6 @@
 package org.izce.mongodb_recipe.services;
 
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.codec.multipart.FilePart;
 
 import reactor.core.publisher.Mono;
 
@@ -11,7 +11,7 @@ public interface ImageService {
 	 * 
 	 * @param file the image file to be saved.
 	 */
-	Mono<Void> save(MultipartFile file);
+	Mono<Void> save(FilePart file);
 
 	/**
 	 * Saves the file to DB in relation with Recipe
@@ -19,6 +19,6 @@ public interface ImageService {
 	 * @param recipeId The id of the recipe.
 	 * @param file     the image file to be saved.
 	 */
-	Mono<Void> save(String recipeId, MultipartFile file);
+	Mono<Void> save(String recipeId, FilePart file);
 
 }

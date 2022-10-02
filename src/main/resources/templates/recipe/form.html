@@ -146,12 +146,13 @@
 					</div>
 					<div id="card1" class="card-body p-2 collapse" >
 						<div class="input-group input-group-sm mx-1">
-							<!-- <input type="hidden" th:field="*{categories[__${categoryStat.index}__].id}" />
-							<input type="hidden" th:field="*{categories[__${categoryStat.index}__].description}" /> -->
+
 							<th:block th:each="category : *{categories}">
 							<span th:id="'category-' + ${category.id}" 
 								th:classappend="${category.id != null} ? 'btn-primary': 'btn-warning'" 
 								class="category mx-1 py-1 px-2 rounded btn font-sm">
+						      <input type="hidden" th:field="*{categories[__${categoryStat.index}__].id}" />
+							  <input type="hidden" th:field="*{categories[__${categoryStat.index}__].description}" />
 							  <span th:text="${category.description}">Turkish</span>
 							  <a class="ml-2" 
 								  th:classappend="${category.id != null} ? 'btn-primary': 'btn-warning'" 
@@ -206,6 +207,8 @@
 						<th:block th:each="direction, directionStat : *{directions}">
 						<div th:id="'direction-' + ${direction.id}" 
 							class="direction alert alert-warning mx-2 my-1 px-2 py-1 font-sm">
+							<input type="hidden" th:field="*{directions[__${directionStat.index}__].id}" />
+							 <input type="hidden" th:field="*{directions[__${directionStat.index}__].direction}" />
 							<span class="" th:text="${direction.direction}">Cook</span>
 							<a class="btn-outline-warning bg-transparent float-end" 
 								th:href="@{'/recipe/' + ${recipe.id} + '/direction/' + ${direction.id} + '/delete'}"

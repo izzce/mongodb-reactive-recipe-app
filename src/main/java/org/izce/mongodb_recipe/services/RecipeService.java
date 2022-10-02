@@ -10,6 +10,7 @@ import reactor.core.publisher.Mono;
 
 public interface RecipeService {
 	Flux<Recipe> getRecipes();
+	Flux<RecipeCommand> getRecipeCommands();
 	Mono<Long> getRecipesCount();
 	Mono<Recipe> findById(String id);
 	Mono<RecipeCommand> findRecipeCommandById(String id);

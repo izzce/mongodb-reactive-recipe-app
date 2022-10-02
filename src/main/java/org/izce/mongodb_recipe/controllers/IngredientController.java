@@ -4,14 +4,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.izce.mongodb_recipe.commands.IngredientCommand;
 import org.izce.mongodb_recipe.commands.RecipeCommand;
 import org.izce.mongodb_recipe.commands.UnitOfMeasureCommand;
 import org.izce.mongodb_recipe.services.IngredientService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -95,14 +94,12 @@ public class IngredientController {
 			@ModelAttribute("recipe") RecipeCommand recipe,
 			@PathVariable String recipeId, 
 			@PathVariable String ingredientId, 
-			Model model, 
-			HttpServletRequest req, 
-			HttpServletResponse resp) throws Exception {
+			ServerHttpResponse resp) throws Exception {
 
 		if (true == recipe.getIngredients().removeIf(e -> e.getId().equals(ingredientId))) {
 			ingredientService.delete(ingredientId).block();
 		} else {
-			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);			
+			resp.setStatusCode(HttpStatus.NOT_FOUND);	
 		}
 		
 		return Map.of("id", ingredientId, "status", "OK");

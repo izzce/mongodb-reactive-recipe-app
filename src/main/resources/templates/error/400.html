@@ -15,7 +15,7 @@
 <div role="main" class="container">
 	<div class="container-fluid bg-dark text-light text-center p-5">
 		<h1 class="text-danger glow glow-red" th:text="#{error.400}">Error 400 - Bad Request</h1> 
-		<h3 class="font-weight-smaller pt-5" th:text="${exception.getMessage()}">Bad request.</h3>
+		<h3 class="font-weight-smaller pt-5" th:text="${exception?.getMessage()}">Bad request.</h3>
    </div>
 </div>
 

@@ -5,8 +5,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.nio.file.Paths;
 
@@ -17,66 +15,74 @@ import org.izce.mongodb_recipe.services.StorageProperties;
 import org.izce.mongodb_recipe.services.StorageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.ui.Model;
+import org.springframework.http.client.MultipartBodyBuilder;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 import reactor.core.publisher.Mono;
 
-public class ImageControllerTest {
-	static final String TEST_FILE_NAME = "testing.txt";
 
-	
-	@Mock
+@WebFluxTest(ImageController.class)
+public class ImageControllerTest {
+	private static final String CONSTANT_STRING_VALUE = "Izce's Reactive Spring Boot App";
+	private static final String TEST_FILE_NAME = "testing.txt";
+
+	@MockBean
 	RecipeService  recipeService;
-	@Mock
+	@MockBean
 	ImageService  imageService;
-	@Mock
-	StorageService  storageService;
-	@Mock
-	Model model;
+	@Autowired
 	ImageController imageController;
-	MockMvc mockMvc;
-	RecipeCommand recipe;
+	@Autowired
+	private WebTestClient webClient;
+	@MockBean
+	private StorageService storageService;
+	@MockBean
+	private MongoOperations mongoOperations;
 	
+	RecipeCommand recipe;
 	
 	@BeforeEach
 	public void setUp() throws Exception {
-		MockitoAnnotations.openMocks(this);
-		imageController = new ImageController(recipeService, imageService, storageService);
-		mockMvc = MockMvcBuilders.standaloneSetup(imageController)
-				.setControllerAdvice(new ControllerExceptionHandler())
-				.build();
 		recipe = new RecipeCommand("1");
 		when(recipeService.findRecipeCommandById(anyString())).thenReturn(Mono.just(recipe));
 		when(imageService.save(anyString(), any())).thenReturn(Mono.empty());
-		when(storageService.load(anyString())).thenReturn(Mono.just(Paths.get(new StorageProperties().getLocation(), TEST_FILE_NAME)));
+		when(storageService.load(anyString()))
+				.thenReturn(Mono.just(Paths.get(new StorageProperties().getLocation(), TEST_FILE_NAME)));
 	}
 	
 	@Test
 	public void handleImagePostForNewRecipe() throws Exception {
-		MockMultipartFile multipartFile =
-                new MockMultipartFile("image[]", TEST_FILE_NAME, MediaType.TEXT_PLAIN_VALUE,
-                        "Spring Framework Guru".getBytes());
+		var bodyBuilder = new MultipartBodyBuilder();
+		bodyBuilder.part("image", CONSTANT_STRING_VALUE.getBytes())
+			.header("Content-Disposition", "form-data; name=image; filename=image_0.jpg")
+			.contentType(MediaType.MULTIPART_FORM_DATA);
 		
-        mockMvc.perform(multipart("/recipe/image").file(multipartFile))
-                .andExpect(status().isOk());
+		webClient.post().uri("/recipe/image")
+				//.contentType(MediaType.MULTIPART_FORM_DATA)
+				.bodyValue(bodyBuilder.build())
+				.exchange()
+				.expectStatus().isOk();
 
         verify(storageService, times(1)).store(any());
 	}
 
 	@Test
 	public void handleImagePostForExistingRecipe() throws Exception {
-		MockMultipartFile multipartFile =
-                new MockMultipartFile("image[]", TEST_FILE_NAME, MediaType.TEXT_PLAIN_VALUE,
-                        "Spring Framework Guru".getBytes());
-		
-        mockMvc.perform(multipart("/recipe/1/image").file(multipartFile))
-                .andExpect(status().isOk());
+		var bodyBuilder = new MultipartBodyBuilder();
+		bodyBuilder.part("image", CONSTANT_STRING_VALUE.getBytes())
+			.header("Content-Disposition", "form-data; name=image; filename=image_0.jpg")
+			.contentType(MediaType.MULTIPART_FORM_DATA);
+        
+		webClient.post().uri("/recipe/1/image")
+			//.contentType(MediaType.MULTIPART_FORM_DATA)
+			.bodyValue(bodyBuilder.build())
+			.exchange()
+			.expectStatus().isOk();
 
         verify(imageService, times(1)).save(anyString(), any());
 	}

@@ -1,14 +1,14 @@
 package org.izce.mongodb_recipe.controllers;
 
-import java.util.Map;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 
 import org.izce.mongodb_recipe.commands.DirectionCommand;
 import org.izce.mongodb_recipe.commands.RecipeCommand;
 import org.izce.mongodb_recipe.services.DirectionService;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.SessionAttributes;
 
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @Controller
@@ -32,56 +33,57 @@ public class DirectionController {
 		this.directionService = directionService;
 	}
 
-	@PostMapping(value = "/recipe/{recipeId}/direction/add", produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(value = "/recipe/{recipeId}/direction/add", produces = APPLICATION_JSON_VALUE)
 	@ResponseBody
-	public Map<String, String> addDirection(
+	public Mono<Map<String, String>> addDirection(
 			@PathVariable String recipeId, 
 			@RequestBody DirectionCommand direction,
 			@ModelAttribute("recipe") RecipeCommand recipe,
 			Model model) throws Exception {
 		
 		direction.setRecipeId(recipeId);
-		DirectionCommand savedDirection = directionService.saveDirectionCommand(direction).block();
-		recipe.getDirections().add(savedDirection);
-		model.addAttribute("recipe", recipe);
-
-		return Map.of("id", savedDirection.getId(), "direction", savedDirection.getDirection());
+		
+		return directionService.saveDirectionCommand(direction).flatMap(savedDirection -> {
+			recipe.getDirections().add(savedDirection);
+			model.addAttribute("recipe", recipe);
+			return Mono.just(Map.of("id", savedDirection.getId(), "direction", savedDirection.getDirection()));
+		});
 	}
 	
-	@PostMapping(value = "/recipe/{recipeId}/direction/{directionId}/update", produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(value = "/recipe/{recipeId}/direction/{directionId}/update", produces = APPLICATION_JSON_VALUE)
 	@ResponseBody
-	public Map<String, String> updateDirection(
+	public Mono<Map<String, String>> updateDirection(
 			@PathVariable String recipeId, 
 			@RequestBody DirectionCommand direction,
 			@ModelAttribute("recipe") RecipeCommand recipe,
 			Model model) throws Exception {
 		
-		DirectionCommand savedDirection = directionService.saveDirectionCommand(direction).block();
-		recipe.getDirections().remove(direction);
-		recipe.getDirections().add(savedDirection);
-		model.addAttribute("recipe", recipe);
-
-		return Map.of("id", savedDirection.getId().toString(), "direction", savedDirection.getDirection());
+		return directionService.saveDirectionCommand(direction).flatMap(savedDirection -> {
+			recipe.getDirections().remove(direction);
+			recipe.getDirections().add(savedDirection);
+			model.addAttribute("recipe", recipe);
+			return Mono.just(Map.of("id", savedDirection.getId(), "direction", savedDirection.getDirection()));
+		});
 		
 	}
 
-	@DeleteMapping(value = "/recipe/{recipeId}/direction/{directionId}/delete", produces = MediaType.APPLICATION_JSON_VALUE)
+	@DeleteMapping(value = "/recipe/{recipeId}/direction/{directionId}/delete", produces = APPLICATION_JSON_VALUE)
 	@ResponseBody
-	public Map<String, String> deleteDirection(
+	public Mono<Map<String, String>> deleteDirection(
 			@ModelAttribute("recipe") RecipeCommand recipe,
 			@PathVariable String recipeId, 
 			@PathVariable String directionId, 
-			Model model, 
-			HttpServletRequest req, 
-			HttpServletResponse resp) throws Exception {
+			Model model,  
+			ServerHttpResponse resp) throws Exception {
 
 		boolean elementRemoved = recipe.getDirections().removeIf(e -> e.getId().equals(directionId));
 		if (!elementRemoved) {
-			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			resp.setStatusCode(HttpStatus.NOT_FOUND);
+			return Mono.just(Map.of("id", directionId));
 		} else {
-			directionService.delete(directionId).block();			
+			return directionService.delete(directionId).then(Mono.just(Map.of("id", directionId)));			
 		}
-		return Map.of("id", directionId);
 	}
 
 }
+

@@ -7,12 +7,12 @@ import org.izce.mongodb_recipe.model.Ingredient;
 import org.izce.mongodb_recipe.model.Note;
 import org.izce.mongodb_recipe.model.Recipe;
 import org.izce.mongodb_recipe.model.UnitOfMeasure;
-import org.izce.mongodb_recipe.repositories.CategoryRepository;
-import org.izce.mongodb_recipe.repositories.DirectionRepository;
-import org.izce.mongodb_recipe.repositories.IngredientRepository;
-import org.izce.mongodb_recipe.repositories.NoteRepository;
-import org.izce.mongodb_recipe.repositories.RecipeRepository;
-import org.izce.mongodb_recipe.repositories.UnitOfMeasureRepository;
+import org.izce.mongodb_recipe.repositories.reactive.CategoryReactiveRepository;
+import org.izce.mongodb_recipe.repositories.reactive.DirectionReactiveRepository;
+import org.izce.mongodb_recipe.repositories.reactive.IngredientReactiveRepository;
+import org.izce.mongodb_recipe.repositories.reactive.NoteReactiveRepository;
+import org.izce.mongodb_recipe.repositories.reactive.RecipeReactiveRepository;
+import org.izce.mongodb_recipe.repositories.reactive.UomReactiveRepository;
 import org.springframework.boot.CommandLineRunner;
 
 import lombok.extern.slf4j.Slf4j;
@@ -22,15 +22,15 @@ import lombok.extern.slf4j.Slf4j;
 //@Profile("default")
 public class DataLoader implements CommandLineRunner {
 
-	private final RecipeRepository recipeRepo;
-	private final IngredientRepository ingredientRepo;
-	private final UnitOfMeasureRepository uomRepo;
-	private final NoteRepository notesRepo;
-	private final CategoryRepository categoryRepo;
-	private final DirectionRepository directionRepo;
+	private final RecipeReactiveRepository recipeRepo;
+	private final IngredientReactiveRepository ingredientRepo;
+	private final UomReactiveRepository uomRepo;
+	private final NoteReactiveRepository notesRepo;
+	private final CategoryReactiveRepository categoryRepo;
+	private final DirectionReactiveRepository directionRepo;
 
-	public DataLoader(RecipeRepository recipeRepo, IngredientRepository ingredientRepo, UnitOfMeasureRepository uomRepo,
-			NoteRepository notesRepo, CategoryRepository categoryRepo, DirectionRepository directionRepo) {
+	public DataLoader(RecipeReactiveRepository recipeRepo, IngredientReactiveRepository ingredientRepo, UomReactiveRepository uomRepo,
+			NoteReactiveRepository notesRepo, CategoryReactiveRepository categoryRepo, DirectionReactiveRepository directionRepo) {
 		log.debug("Initializing DataLoader...");
 		this.recipeRepo = recipeRepo;
 		this.ingredientRepo = ingredientRepo;
@@ -43,19 +43,19 @@ public class DataLoader implements CommandLineRunner {
 	@Override
 	public void run(String... args) throws Exception {
 		// CATEGORIES
-		Category mexican = categoryRepo.findByDescription("Mexican").get();
-		Category american = categoryRepo.findByDescription("American").get();
-		Category chinese = categoryRepo.findByDescription("Chinese").get();
+		Category mexican = categoryRepo.findByDescription("Mexican").block();
+		Category american = categoryRepo.findByDescription("American").block();
+		Category chinese = categoryRepo.findByDescription("Chinese").block();
 
 		// UNIT of MEASURES
-		UnitOfMeasure piece = uomRepo.findByUom("Piece").get();
-		UnitOfMeasure teaspoon = uomRepo.findByUom("Teaspoon").get();
-		UnitOfMeasure tablespoon = uomRepo.findByUom("Tablespoon").get();
-		UnitOfMeasure dash = uomRepo.findByUom("Dash").get();
-		UnitOfMeasure clove = uomRepo.findByUom("Clove").get();
-		UnitOfMeasure pound = uomRepo.findByUom("Pound").get();
-		UnitOfMeasure cup = uomRepo.findByUom("Cup").get();
-		UnitOfMeasure pint = uomRepo.findByUom("Pint").get();
+		UnitOfMeasure piece = uomRepo.findByUom("Piece").block();
+		UnitOfMeasure teaspoon = uomRepo.findByUom("Teaspoon").block();
+		UnitOfMeasure tablespoon = uomRepo.findByUom("Tablespoon").block();
+		UnitOfMeasure dash = uomRepo.findByUom("Dash").block();
+		UnitOfMeasure clove = uomRepo.findByUom("Clove").block();
+		UnitOfMeasure pound = uomRepo.findByUom("Pound").block();
+		UnitOfMeasure cup = uomRepo.findByUom("Cup").block();
+		UnitOfMeasure pint = uomRepo.findByUom("Pint").block();
 
 		//////////////////////////////////////////
 		// RECIPE-1: Perfect Guacamole
@@ -74,7 +74,7 @@ public class DataLoader implements CommandLineRunner {
 		r1.setDifficulty(Difficulty.MODERATE);
 		// DB will auto-generate the ID in persisting the object and will return the
 		// object with id.
-		r1 = recipeRepo.save(r1);
+		r1 = recipeRepo.save(r1).block();
 
 		addDirection(r1, "Cut avocado, remove flesh.");
 		addDirection(r1, "Mash with a fork.");
@@ -97,7 +97,7 @@ public class DataLoader implements CommandLineRunner {
 		addNote(r1, "Mash with a fork: Using a fork, roughly mash the avocado.");
 		addNote(r1, "Add salt, lime juice, and the rest: Sprinkle with salt and lime (or lemon) juice.");
 		addNote(r1, "Cover with plastic and chill to store: Place plastic wrap on the surface.");
-		r1 = recipeRepo.save(r1);
+		r1 = recipeRepo.save(r1).block();
 
 		log.debug("Added Recipe1: {}", "Perfect Guacamole!");
 
@@ -118,7 +118,7 @@ public class DataLoader implements CommandLineRunner {
 		r2.setServings(5);
 		r2.setDifficulty(Difficulty.HARD);
 		// DB will auto-generate the ID.
-		r2 = recipeRepo.save(r2);
+		r2 = recipeRepo.save(r2).block();
 
 		addDirection(r2, "Prepare a gas or charcoal grill for medium-high, direct heat.");
 		addDirection(r2, "Make the marinade and coat the chicken.");
@@ -146,7 +146,7 @@ public class DataLoader implements CommandLineRunner {
 		addNote(r2, "Warm the tortillas: Place each tortilla on the grill or on a hot.");
 		addNote(r2, "Assemble the tacos: Slice the chicken into strips.");
 
-		r2 = recipeRepo.save(r2);
+		r2 = recipeRepo.save(r2).block();
 
 		log.debug("Added Recipe2: {}", "Spicy Grilled Chicken Tacos!");
 	}
@@ -154,21 +154,21 @@ public class DataLoader implements CommandLineRunner {
 	private void addIngredient(Recipe recipe, String description, float amount, UnitOfMeasure uom) {
 		var i = new Ingredient(description, amount, uom);
 		//i.setRecipe(recipe);
-		i = ingredientRepo.save(i);
+		i = ingredientRepo.save(i).block();
 		recipe.getIngredients().add(i);
 	}
 
 	private void addDirection(Recipe recipe, String direction) {
 		var d = new Direction(direction);
 		//d.setRecipe(recipe);
-		d = directionRepo.save(d);
+		d = directionRepo.save(d).block();
 		recipe.getDirections().add(d);
 	}
 
 	private void addNote(Recipe recipe, String note) {
 		var n = new Note(note);
 		//n.setRecipe(recipe);
-		n = notesRepo.save(n);
+		n = notesRepo.save(n).block();
 		recipe.getNotes().add(n);
 	}
 

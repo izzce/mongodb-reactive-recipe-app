@@ -7,10 +7,10 @@ import org.izce.mongodb_recipe.model.Ingredient;
 import org.izce.mongodb_recipe.model.Note;
 import org.izce.mongodb_recipe.model.Recipe;
 import org.izce.mongodb_recipe.model.UnitOfMeasure;
-import org.izce.mongodb_recipe.repositories.DirectionRepository;
-import org.izce.mongodb_recipe.repositories.IngredientRepository;
-import org.izce.mongodb_recipe.repositories.NoteRepository;
 import org.izce.mongodb_recipe.repositories.reactive.CategoryReactiveRepository;
+import org.izce.mongodb_recipe.repositories.reactive.DirectionReactiveRepository;
+import org.izce.mongodb_recipe.repositories.reactive.IngredientReactiveRepository;
+import org.izce.mongodb_recipe.repositories.reactive.NoteReactiveRepository;
 import org.izce.mongodb_recipe.repositories.reactive.RecipeReactiveRepository;
 import org.izce.mongodb_recipe.repositories.reactive.UomReactiveRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,13 +35,13 @@ public class BootStrap_MongoDB implements ApplicationListener<ContextRefreshedEv
 	RecipeReactiveRepository recipeReactiveRepo;
 	
 	@Autowired
-	IngredientRepository ingredientRepo;
+	IngredientReactiveRepository ingredientReactiveRepo;
 
 	@Autowired
-	DirectionRepository directionRepo;
+	DirectionReactiveRepository directionReactiveRepo;
 	
 	@Autowired
-	NoteRepository noteRepo;
+	NoteReactiveRepository noteReactiveRepo;
 	
 	
 	public BootStrap_MongoDB() {
@@ -208,21 +208,21 @@ public class BootStrap_MongoDB implements ApplicationListener<ContextRefreshedEv
 	private void addIngredient(Recipe recipe, String description, float amount, UnitOfMeasure uom) {
 		var i = new Ingredient(description, amount, uom);
 		//i.setRecipe(recipe);
-		i = ingredientRepo.save(i);
+		i = ingredientReactiveRepo.save(i).block();
 		recipe.getIngredients().add(i);
 	}
 
 	private void addDirection(Recipe recipe, String direction) {
 		var d = new Direction(direction);
 		//d.setRecipe(recipe);
-		d = directionRepo.save(d);
+		d = directionReactiveRepo.save(d).block();
 		recipe.getDirections().add(d);
 	}
 
 	private void addNote(Recipe recipe, String note) {
 		var n = new Note(note);
 		//n.setRecipe(recipe);
-		n = noteRepo.save(n);
+		n = noteReactiveRepo.save(n).block();
 		recipe.getNotes().add(n);
 	}
 }

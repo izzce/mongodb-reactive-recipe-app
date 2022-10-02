@@ -43,14 +43,14 @@
 	</div>
 		
 	<!-- USER DETAILS -->
-	<div th:if="${#httpServletRequest.remoteUser} != null" class="d-none d-sm-block navbar-brand justify-content-end" >
-        <form th:action="@{/logout}" method="post">
-        	<span class="h6" th:text="#{login.hello(__${#httpServletRequest.remoteUser}__)}">Hello user!</span>
-	        <button type="submit" class="font-xl btn btn-outline-warning border-0 pulse">
-			    <i class=" fas fa-sign-out-alt  pulse"></i>
-			</button>
-        </form>
-	</div>
+<!-- 	<div th:if="${#serverHttpRequest.remoteUser} != null" class="d-none d-sm-block navbar-brand justify-content-end" > -->
+<!--         <form th:action="@{/logout}" method="post"> -->
+<!--         	<span class="h6" th:text="#{login.hello(__${#serverHttpRequest.remoteUser}__)}">Hello user!</span> -->
+<!-- 	        <button type="submit" class="font-xl btn btn-outline-warning border-0 pulse"> -->
+<!-- 			    <i class=" fas fa-sign-out-alt  pulse"></i> -->
+<!-- 			</button> -->
+<!--         </form> -->
+<!-- 	</div> -->
 	
 </nav>
 	

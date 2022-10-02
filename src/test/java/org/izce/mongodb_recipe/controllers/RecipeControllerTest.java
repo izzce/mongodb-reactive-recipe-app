@@ -3,73 +3,99 @@ package org.izce.mongodb_recipe.controllers;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import org.izce.mongodb_recipe.commands.RecipeCommand;
 import org.izce.mongodb_recipe.commands.UnitOfMeasureCommand;
 import org.izce.mongodb_recipe.exceptions.NotFoundException;
-import org.izce.mongodb_recipe.model.Recipe;
 import org.izce.mongodb_recipe.services.RecipeService;
+import org.izce.mongodb_recipe.services.StorageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.ui.Model;
+import org.springframework.http.client.reactive.ClientHttpConnector;
+import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.test.web.reactive.server.WebTestClientConfigurer;
+import org.springframework.test.web.reactive.server.WebTestClient.Builder;
+import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilter;
+import org.springframework.web.server.WebFilterChain;
+import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@WebFluxTest(RecipeController.class)
 public class RecipeControllerTest {
-	@Mock
+	@MockBean
 	RecipeService recipeService;
-	@Mock
-	Model model;
-	RecipeController recipeController;
-	MockMvc mockMvc;
+	@Autowired
+	private WebTestClient webClient;
+	@MockBean
+	private StorageService storageService;
+	@MockBean
+	private MongoOperations mongoOperations;
 
+	RecipeCommand recipe;
+	
 	@BeforeEach
 	public void setUp() throws Exception {
-		MockitoAnnotations.openMocks(this);
-		recipeController = new RecipeController(recipeService);
-		mockMvc = MockMvcBuilders.standaloneSetup(recipeController)
-				.setControllerAdvice(new ControllerExceptionHandler()).build();
+		recipe = new RecipeCommand("2");
 		
 		// This is for satisfying "uomList" additions to the model.
 		UnitOfMeasureCommand piece = new UnitOfMeasureCommand("1", "Piece");
 		when(recipeService.findAllUoms()).thenReturn(Flux.just(piece));
+		
+		final var webFilter = new WebFilter() {
+	        @Override
+	        public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain webFilterChain) {
+	            return exchange.getSession()
+	            		.doOnNext(webSession -> webSession.getAttributes().put("recipe", recipe))
+	                    .then(webFilterChain.filter(exchange));
+	        }
+	    };
+		
+		final var configurer = new WebTestClientConfigurer() {
+			@Override
+			public void afterConfigurerAdded(Builder builder, WebHttpHandlerBuilder httpHandlerBuilder,
+					ClientHttpConnector connector) {
+				 httpHandlerBuilder.filters(filters -> filters.add(0, webFilter));
+			}
+		};
+		
+		webClient = webClient.mutateWith(configurer);
 	}
 
 	@Test
 	public void testGetRecipe() throws Exception {
-		Recipe recipe = new Recipe();
-		recipe.setId("2");
-		when(recipeService.findById(anyString())).thenReturn(Mono.just(recipe));
-		mockMvc.perform(get("/recipe/1/show")).andExpect(status().isOk()).andExpect(view().name("recipe/show"));
+		when(recipeService.findRecipeCommandById(anyString())).thenReturn(Mono.just(recipe));
+		
+		webClient.get().uri("/recipe/1/show")
+				.exchange()
+				.expectStatus().isOk();
 	}
 
 	@Test
 	public void testGetNewRecipeForm() throws Exception {
-		mockMvc.perform(get("/recipe/new")).andExpect(status().isOk()).andExpect(view().name("recipe/form"))
-				.andExpect(model().attributeExists("recipe"));
+		webClient.get().uri("/recipe/new")
+				.exchange()
+				.expectStatus().isOk();
 	}
 
 	@Test
 	public void testPostNewRecipeForm() throws Exception {
-		RecipeCommand recipeCommand = new RecipeCommand();
-		recipeCommand.setId("2");
 
-		when(recipeService.saveRecipeCommand(any())).thenReturn(Mono.just(recipeCommand));
+		when(recipeService.saveRecipeCommand(any())).thenReturn(Mono.just(recipe));
 
-		mockMvc.perform(post("/recipe").sessionAttr("recipe", recipeCommand)
-				.contentType(MediaType.APPLICATION_FORM_URLENCODED).param("description", "some string"))
-				.andExpect(status().is3xxRedirection()).andExpect(view().name("redirect:/recipe/2/show"));
+		webClient.post().uri(uriBuilder -> uriBuilder.path("/recipe").queryParam("description", "some string").build())
+				.attribute("recipe", recipe)
+				.contentType(MediaType.APPLICATION_FORM_URLENCODED)
+				.exchange()
+				.expectStatus().isOk();
+				
 	}
 
 	@Test
@@ -79,13 +105,18 @@ public class RecipeControllerTest {
 
 		when(recipeService.findRecipeCommandById(anyString())).thenReturn(Mono.just(recipeCommand));
 
-		mockMvc.perform(get("/recipe/1/update")).andExpect(status().isOk()).andExpect(view().name("recipe/form"))
-				.andExpect(model().attributeExists("recipe"));
+		webClient.get().uri("/recipe/1/update")
+		.exchange()
+		.expectStatus().isOk();
 	}
 
 	@Test
 	public void testGetRecipeNotFound() throws Exception {
-		when(recipeService.findById(anyString())).thenThrow(NotFoundException.class);
-		mockMvc.perform(get("/recipe/1/show")).andExpect(status().isNotFound()).andExpect(view().name("error/404"));
+		when(recipeService.findRecipeCommandById(anyString())).thenThrow(NotFoundException.class);
+
+		webClient.get().uri("/recipe/1/show")
+		.exchange()
+		.expectStatus().isNotFound();
 	}
 }
+

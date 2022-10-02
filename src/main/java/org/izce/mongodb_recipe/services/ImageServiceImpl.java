@@ -1,11 +1,10 @@
 package org.izce.mongodb_recipe.services;
 
-import java.io.IOException;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.izce.mongodb_recipe.repositories.reactive.RecipeReactiveRepository;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import reactor.core.publisher.Mono;
 
@@ -18,16 +17,13 @@ public class ImageServiceImpl implements ImageService {
     }
     
     @Override
-    public Mono<Void> save(final String recipeId, final MultipartFile file) {
+    public Mono<Void> save(final String recipeId, final FilePart file) {
     	recipeRepo.findById(recipeId).map(recipe -> {
     		 Byte[] byteObjects;
-			try {
-				byteObjects = ArrayUtils.toObject(file.getBytes());
-				recipe.setImage(byteObjects);
-
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			byte[] tmp = DataBufferUtils.join(file.content())
+			.map(dataBuffer -> dataBuffer.asByteBuffer().array()).block();
+			byteObjects = ArrayUtils.toObject(tmp);
+			recipe.setImage(byteObjects);
 			return recipe;
     	}).publish(recipeMono -> recipeRepo.save(recipeMono.block())) ;
         
@@ -35,8 +31,7 @@ public class ImageServiceImpl implements ImageService {
     }
 
 	@Override
-	public Mono<Void> save(MultipartFile file) {
-		// TODO Auto-generated method stub
+	public Mono<Void> save(FilePart file) {
 		return Mono.empty();
 	}
 

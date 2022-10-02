@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import org.springframework.core.io.Resource;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.codec.multipart.FilePart;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -13,7 +13,7 @@ public interface StorageService {
 	
 	Mono<Void> init();
 
-	Mono<Void> store(MultipartFile file);
+	Mono<Void> store(FilePart filePart);
 	
 	Flux<Path> loadAll() throws IOException;
 

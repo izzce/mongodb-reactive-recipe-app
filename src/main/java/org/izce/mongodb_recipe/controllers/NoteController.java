@@ -2,13 +2,12 @@ package org.izce.mongodb_recipe.controllers;
 
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.izce.mongodb_recipe.commands.NoteCommand;
 import org.izce.mongodb_recipe.commands.RecipeCommand;
 import org.izce.mongodb_recipe.services.NoteService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -71,13 +70,11 @@ public class NoteController {
 			@ModelAttribute("recipe") RecipeCommand recipe,
 			@PathVariable String recipeId, 
 			@PathVariable String noteId, 
-			Model model, 
-			HttpServletRequest req, 
-			HttpServletResponse resp) throws Exception {
+			ServerHttpResponse resp) throws Exception {
 
 		boolean elementRemoved = recipe.getNotes().removeIf(e -> e.getId().equals(noteId));
 		if (!elementRemoved) {
-			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			resp.setStatusCode(HttpStatus.NOT_FOUND);
 		}
 		noteService.delete(noteId).block();
 		return Map.of("id", noteId);

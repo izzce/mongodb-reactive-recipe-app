@@ -1,18 +1,16 @@
 package org.izce.mongodb_recipe.services;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
-import org.springframework.web.multipart.MultipartFile;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -39,26 +37,17 @@ public class FilesystemStorageServiceImpl implements StorageService {
 	}
 
 	@Override
-	public Mono<Void> store(MultipartFile file) {
-		try {
-			if (file.isEmpty()) {
-				throw new RuntimeException("Failed to store empty file.");
-			}
-			Path dest = this.rootLocation.resolve(Paths.get(file.getOriginalFilename())).normalize().toAbsolutePath();
-			if (!dest.getParent().equals(this.rootLocation.toAbsolutePath())) {
-				// This is a security check
-				throw new RuntimeException("Cannot store file outside current directory.");
-			}
-
-			try (InputStream inputStream = file.getInputStream()) {
-				Files.copy(inputStream, dest, StandardCopyOption.REPLACE_EXISTING);
-			}
-		} catch (IOException e) {
-			log.error("Failed to store file.", e);
-			throw new RuntimeException("Failed to store file.", e);
+	public Mono<Void> store(FilePart filePart) {
+		if (filePart == null) {
+			throw new RuntimeException("Failed to store empty file.");
 		}
-		
-		return Mono.empty();
+		Path dest = this.rootLocation.resolve(Paths.get(filePart.filename())).normalize().toAbsolutePath();
+		if (!dest.getParent().equals(this.rootLocation.toAbsolutePath())) {
+			// This is a security check
+			throw new RuntimeException("Cannot store file outside current directory.");
+		}
+
+		return filePart.transferTo(dest);
 	}
 
 	@Override

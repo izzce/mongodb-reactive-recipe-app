@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.format.FormatterRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.reactive.config.WebFluxConfigurer;
 
 
 @SpringBootApplication
@@ -26,7 +26,7 @@ public class MongoDbReactiveRecipeApp {
 	}
 
     @Configuration
-    static class RecipeAppConfig implements WebMvcConfigurer {
+    static class RecipeAppConfig implements WebFluxConfigurer {
         @Override
         public void addFormatters(FormatterRegistry registry) {
             registry.addFormatter(new CategoryFormatter());

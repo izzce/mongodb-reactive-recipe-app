@@ -1,23 +1,27 @@
 package org.izce.mongodb_recipe.controllers;
 
+import java.util.Map;
+
+import org.springframework.boot.web.error.ErrorAttributeOptions;
+import org.springframework.boot.web.reactive.error.DefaultErrorAttributes;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.reactive.function.server.ServerRequest;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
-@ControllerAdvice
-public class ControllerExceptionHandler {
+//@ControllerAdvice
+public class ControllerExceptionHandler extends DefaultErrorAttributes {
 	
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ExceptionHandler(NumberFormatException.class)
-	public ModelAndView handleNumberFormatException(Exception exception) {
-		log.error("Handling number format exception: " + exception.getMessage());
-		ModelAndView mav = new ModelAndView("error/400");
-		mav.addObject("exception", exception);
-		return mav;
-	}
+	@Override
+    public Map<String, Object> getErrorAttributes(ServerRequest request, 
+      ErrorAttributeOptions options) {
+        Map<String, Object> map = super.getErrorAttributes(
+          request, options);
+        map.put("status", HttpStatus.BAD_REQUEST.value());
+        map.put("message", options);
+        return map;
+    }
 }

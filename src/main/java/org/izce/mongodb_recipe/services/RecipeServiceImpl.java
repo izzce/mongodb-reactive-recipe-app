@@ -73,6 +73,11 @@ public class RecipeServiceImpl implements RecipeService {
 	public Flux<Recipe> getRecipes() {
 		return recipeRepo.findAll();
 	}
+	
+	@Override
+	public Flux<RecipeCommand> getRecipeCommands() {
+		return getRecipes().map(recipeToRecipeCommand::convert);
+	}
 
 	@Override
 	public Mono<Long> getRecipesCount() {
@@ -117,6 +122,8 @@ public class RecipeServiceImpl implements RecipeService {
         		//d.setRecipe(recipe);
         		if (d.getId() == null) {
         			newDirections.add(directionRepo.save(d).block());
+        		} else {
+        			newDirections.add(d);
         		}
         	}
         	recipe.setDirections(newDirections);
@@ -128,6 +135,8 @@ public class RecipeServiceImpl implements RecipeService {
         		//i.setRecipe(recipe);
         		if (i.getId() == null) {
         			newIngredients.add(ingredientRepo.save(i).block());
+        		} else {
+        			newIngredients.add(i);
         		}
         	}
         	recipe.setIngredients(newIngredients);
@@ -139,8 +148,11 @@ public class RecipeServiceImpl implements RecipeService {
         		//n.setRecipe(recipe);
         		if (n.getId() == null) {
         			newNotes.add(notesRepo.save(n).block());
+        		} else {
+        			newNotes.add(n);
         		}
         	}
+        	recipe.setNotes(newNotes);
         }
         
         // log.info("Saved Recipe - id: {}, name: {}", recipe.getId(), recipe.getDescription());
@@ -185,5 +197,5 @@ public class RecipeServiceImpl implements RecipeService {
 	public Mono<Void> delete(String recipeId) {
 		return recipeRepo.deleteById(recipeId);
 	}
-	
+
 }

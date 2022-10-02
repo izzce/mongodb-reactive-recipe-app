@@ -1,116 +1,128 @@
 package org.izce.mongodb_recipe.controllers;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.izce.mongodb_recipe.controllers.TestUtils.asJsonString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.izce.mongodb_recipe.commands.CategoryCommand;
 import org.izce.mongodb_recipe.commands.RecipeCommand;
 import org.izce.mongodb_recipe.services.RecipeService;
+import org.izce.mongodb_recipe.services.StorageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.ui.Model;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.client.reactive.ClientHttpConnector;
+import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.test.web.reactive.server.WebTestClient.Builder;
+import org.springframework.test.web.reactive.server.WebTestClientConfigurer;
+import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilter;
+import org.springframework.web.server.WebFilterChain;
+import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 
 import reactor.core.publisher.Mono;
 
-
+@WebFluxTest(CategoryController.class)
 public class CategoryControllerTest {
-	@Mock
+	@MockBean
 	RecipeService recipeService;
-	@Mock
-	Model model;
-	CategoryController categoryController;
-	MockMvc mockMvc;
-
+	@Autowired
+	private WebTestClient webClient;
+	@MockBean
+	private StorageService storageService;
+	@MockBean
+	private MongoOperations mongoOperations;
+	
+	RecipeCommand rc;
+	
 	@BeforeEach
 	public void setUp() throws Exception {
-		MockitoAnnotations.openMocks(this);
-		categoryController = new CategoryController(recipeService);
-		mockMvc = MockMvcBuilders.standaloneSetup(categoryController).build();
-	}
+		rc = new RecipeCommand("2");
 
+		final var webFilter = new WebFilter() {
+	        @Override
+	        public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain webFilterChain) {
+	            return exchange.getSession()
+	            		.doOnNext(webSession -> webSession.getAttributes().put("recipe", rc))
+	                    .then(webFilterChain.filter(exchange));
+	        }
+	    };
+		
+		final var configurer = new WebTestClientConfigurer() {
+			@Override
+			public void afterConfigurerAdded(Builder builder, WebHttpHandlerBuilder httpHandlerBuilder,
+					ClientHttpConnector connector) {
+				 httpHandlerBuilder.filters(filters -> filters.add(0, webFilter));
+			}
+		};
+		
+		webClient = webClient.mutateWith(configurer);
+	}
+	
 	@Test
 	public void testAddExistingCategory() throws Exception {
-		RecipeCommand rc = new RecipeCommand();
-		rc.setId("2");
 		CategoryCommand cc = new CategoryCommand("Turkish");
 		cc.setId("1");
 		rc.getCategories().add(cc);
 		
 		when(recipeService.findCategoryByDescription(any())).thenReturn(Mono.just(cc));
 		
-		mockMvc.perform(post("/recipe/2/category/add")
-						.sessionAttr("recipe", rc)
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(asJsonString(cc)))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.status", is("PRESENT")));
+		webClient.post().uri("/recipe/2/category/add")
+				.contentType(MediaType.APPLICATION_JSON)
+				.bodyValue(asJsonString(cc))
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody()
+				.jsonPath("$.status", is("PRESENT"));
 	}
 	
 	@Test
 	public void testAddNewCategory() throws Exception {
-		RecipeCommand rc = new RecipeCommand();
-		rc.setId("2");
-		CategoryCommand cc = new CategoryCommand("Italian");
-		cc.setId("2");
+		
+		CategoryCommand cc = new CategoryCommand("2", "Italian");
+		// TODO add or not add to recipe?
 		//rc.getCategories().add(cc);
 		
-		when(recipeService.findCategoryByDescription(any())).thenReturn(Mono.just(cc));
+		when(recipeService.findCategoryByDescription(anyString())).thenReturn(Mono.just(cc));
 		
-		mockMvc.perform(post("/recipe/2/category/add")
-						.sessionAttr("recipe", rc)
+		webClient.post().uri("/recipe/2/category/add")
 						.contentType(MediaType.APPLICATION_JSON)
-						.content(asJsonString(cc)))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.id", is("2")))
-				.andExpect(jsonPath("$.description", is("Italian")));
+						.bodyValue(asJsonString(cc))
+						.exchange()
+						.expectStatus().isOk()
+						.expectBody()
+						.jsonPath("$.id").isEqualTo("2")
+						.jsonPath("$.description").isEqualTo("Italian");
 	}
 	
 	@Test
     public void testDeleteExistingCategory() throws Exception {
-        RecipeCommand rc = new RecipeCommand();
-        rc.setId("2");
-		CategoryCommand cc = new CategoryCommand("Turkish");
-		cc.setId("1");
+		CategoryCommand cc = new CategoryCommand("1", "Turkish");
 		rc.getCategories().add(cc);
 
-        mockMvc.perform(delete("/recipe/2/category/1/delete")
-        				.sessionAttr("recipe", rc))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("id", is("1")));
+		webClient.delete().uri("/recipe/2/category/1/delete")
+        				.exchange()
+        				.expectStatus().isOk()
+        				.expectBody()
+        				.jsonPath("$.id").isEqualTo("1");
     }
 	
 	@Test
-    public void testDeleteMissingCategory() throws Exception {
-		 RecipeCommand rc = new RecipeCommand();
-		 rc.setId("2");
-	        
-        CategoryCommand cc = new CategoryCommand("Italian");
-		cc.setId("2");
-		
-		 mockMvc.perform(delete("/recipe/2/category/2/delete")
- 				.sessionAttr("recipe", rc))
-         .andExpect(status().isNotFound())
-         .andExpect(jsonPath("$.id", is("2")));
-    }
-	
-	
-	public static String asJsonString(final Object obj) {
-	    try {
-	        return new ObjectMapper().writeValueAsString(obj);
-	    } catch (Exception e) {
-	        throw new RuntimeException(e);
-	    }
+	public void testDeleteMissingCategory() throws Exception {
+		//CategoryCommand cc = new CategoryCommand("2", "Italian");
+
+		webClient.delete().uri("/recipe/2/category/2/delete")
+						.exchange()
+						.expectStatus().isNotFound()
+						.expectBody()
+						.jsonPath("$.id").isEqualTo("2");
 	}
+	
 }
+

@@ -1,113 +1,124 @@
 package org.izce.mongodb_recipe.controllers;
 
-import static org.hamcrest.CoreMatchers.is;
+import static org.izce.mongodb_recipe.controllers.TestUtils.asJsonString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.izce.mongodb_recipe.commands.DirectionCommand;
 import org.izce.mongodb_recipe.commands.RecipeCommand;
 import org.izce.mongodb_recipe.services.DirectionService;
+import org.izce.mongodb_recipe.services.StorageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.ui.Model;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.client.reactive.ClientHttpConnector;
+import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.test.web.reactive.server.WebTestClient.Builder;
+import org.springframework.test.web.reactive.server.WebTestClientConfigurer;
+import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilter;
+import org.springframework.web.server.WebFilterChain;
+import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 
 import reactor.core.publisher.Mono;
 
-
+@WebFluxTest(DirectionController.class)
 public class DirectionControllerTest {
-	@Mock
+	@MockBean
 	DirectionService directionService;
-	@Mock
-	Model model;
-	DirectionController directionController;
-	MockMvc mockMvc;
+	@Autowired
+	private WebTestClient webClient;
+	@MockBean
+	private StorageService storageService;
+	@MockBean
+	private MongoOperations mongoOperations;
 
+	DirectionCommand direction;
+	
 	@BeforeEach
 	public void setUp() throws Exception {
-		MockitoAnnotations.openMocks(this);
-		directionController = new DirectionController(directionService);
-		mockMvc = MockMvcBuilders.standaloneSetup(directionController).build();
-	}
+		var recipe = new RecipeCommand("2");
+		direction = new DirectionCommand("1", "Cook");
+		recipe.getDirections().add(direction);
+		
+		when(directionService.saveDirectionCommand(any())).thenReturn(Mono.just(direction));
 
+		final var webFilter = new WebFilter() {
+	        @Override
+	        public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain webFilterChain) {
+	            return exchange.getSession()
+	            		.doOnNext(webSession -> webSession.getAttributes().put("recipe", recipe))
+	                    .then(webFilterChain.filter(exchange));
+	        }
+	    };
+		
+		final var configurer = new WebTestClientConfigurer() {
+			@Override
+			public void afterConfigurerAdded(Builder builder, WebHttpHandlerBuilder httpHandlerBuilder,
+					ClientHttpConnector connector) {
+				 httpHandlerBuilder.filters(filters -> filters.add(0, webFilter));
+			}
+		};
+		
+		webClient = webClient.mutateWith(configurer);
+	}
+	
 	@Test
 	public void testAddDirection() throws Exception {
-		RecipeCommand rc = new RecipeCommand("2");
-		DirectionCommand dc = new DirectionCommand("1", "Cook");
-		rc.getDirections().add(dc);
 		
-		when(directionService.saveDirectionCommand(any())).thenReturn(Mono.just(dc));
+		webClient.post().uri("/recipe/2/direction/add")
+				.contentType(MediaType.APPLICATION_JSON)
+				.bodyValue(asJsonString(direction))
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody()
+				.jsonPath("$.id").isEqualTo("1")
+				.jsonPath("$.direction").isEqualTo("Cook");
 		
-		mockMvc.perform(post("/recipe/2/direction/add")
-						.sessionAttr("recipe", rc)
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(asJsonString(dc)))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.id", is("1")))
-				.andExpect(jsonPath("$.direction", is("Cook")));
 	}
 	
 	@Test
     public void testUpdateDirection() throws Exception {
-        RecipeCommand rc = new RecipeCommand("2");
-        DirectionCommand dc = new DirectionCommand("1", "Cook");
-		rc.getDirections().add(dc);
-				
-		DirectionCommand dcUpdated = new DirectionCommand("1", "Cook mildly.");
+		DirectionCommand dcUpdated = new DirectionCommand("1", "Slice");
 		
 		when(directionService.saveDirectionCommand(any())).thenReturn(Mono.just(dcUpdated));
 
-		mockMvc.perform(post("/recipe/2/direction/1/update")
-				.sessionAttr("recipe", rc)
+		webClient.post().uri("/recipe/2/direction/1/update")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(asJsonString(dcUpdated)))
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.id", is("1")))
-		.andExpect(jsonPath("$.direction", is("Cook mildly.")));
-
+				.bodyValue(asJsonString(dcUpdated))
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody()
+				.jsonPath("$.id").isEqualTo("1")
+				.jsonPath("$.direction").isEqualTo("Slice");
     }
 	
 	@Test
 	public void testDeleteExistingDirection() throws Exception {
-		RecipeCommand rc = new RecipeCommand("2");
-
-		DirectionCommand dc = new DirectionCommand("2", "Cook");
-		rc.getDirections().add(dc);
 		
 		when(directionService.delete(any())).thenReturn(Mono.empty());
 
-		mockMvc.perform(delete("/recipe/2/direction/2/delete").sessionAttr("recipe", rc)).andExpect(status().isOk())
-				.andExpect(jsonPath("$.id", is("2")));
+		webClient.delete().uri("/recipe/2/direction/1/delete")
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody()
+				.jsonPath("$.id").isEqualTo("1");
 	}
 	
 	@Test
-    public void testDeleteMissingDirection() throws Exception {
-		 RecipeCommand rc = new RecipeCommand("2");
-	        
-		 //DirectionCommand cc = new DirectionCommand(3L, "Stir");
-		
-		 mockMvc.perform(delete("/recipe/2/direction/3/delete")
- 				.sessionAttr("recipe", rc))
-         .andExpect(status().isNotFound())
-         .andExpect(jsonPath("$.id", is("3")));
-    }
-	
-	
-	public static String asJsonString(final Object obj) {
-	    try {
-	        return new ObjectMapper().writeValueAsString(obj);
-	    } catch (Exception e) {
-	        throw new RuntimeException(e);
-	    }
+	public void testDeleteMissingDirection() throws Exception {
+		// DirectionCommand cc = new DirectionCommand(3L, "Stir");
+
+		webClient.delete().uri("/recipe/2/direction/3/delete")
+				.exchange()
+				.expectStatus().isNotFound()
+				.expectBody()
+				.jsonPath("$.id").isEqualTo("3");
 	}
+
 }
+
