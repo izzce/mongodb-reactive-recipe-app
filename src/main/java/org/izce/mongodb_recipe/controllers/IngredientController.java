@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.SessionAttributes;
 
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @Controller
@@ -36,9 +38,9 @@ public class IngredientController {
 
 	@PostMapping(value = "/recipe/{recipeId}/ingredient/add", produces = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseBody
-	public Map<String, Object> addIngredient(
+	public Mono<Map<String, Object>> addIngredient(
+			@Validated @RequestBody IngredientCommand ingredient,
 			@PathVariable String recipeId, 
-			@RequestBody IngredientCommand ingredient,
 			@ModelAttribute("recipe") RecipeCommand recipe,
 			@ModelAttribute("uomList") List<UnitOfMeasureCommand> uomList, 
 			Model model) throws Exception {
@@ -46,26 +48,26 @@ public class IngredientController {
 		var uomId = ingredient.getUom().getId();
 		ingredient.setUom(uomList.stream().filter(e -> e.getId().equals(uomId)).findAny().orElseThrow());
 
-		IngredientCommand savedIngredient = ingredientService.saveIngredientCommand(ingredient).block();
-		recipe.getIngredients().add(savedIngredient);
-		model.addAttribute("recipe", recipe);
-
-		Map<String, Object> map = new HashMap<>();
-		map.put("id", savedIngredient.getId());
-		map.put("amount", savedIngredient.getAmount());
-		map.put("uomid", savedIngredient.getUom().getId());
-		map.put("description", savedIngredient.getDescription());
-		map.put("alltext", savedIngredient.toString());
-		map.put("status", "OK");
-
-		return map;
+		//IngredientCommand savedIngredient = ingredientService.saveIngredientCommand(ingredient).block();
+		return ingredientService.saveIngredientCommand(ingredient).flatMap(savedIngredient -> {
+			recipe.getIngredients().add(savedIngredient);
+			model.addAttribute("recipe", recipe);
+			
+			return Mono.just(Map.of("id", savedIngredient.getId(), 
+									"amount", savedIngredient.getAmount(),
+									"uomid", savedIngredient.getUom().getId(),
+									"description", savedIngredient.getDescription(),
+									"alltext", savedIngredient.toString(),
+									"status", "OK"));
+		});
+		
 	}
 	
 	@PostMapping(value = "/recipe/{recipeId}/ingredient/{ingredientId}/update", produces = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseBody
 	public Map<String, Object> updateIngredient(
+			@Validated @RequestBody IngredientCommand ingredient,
 			@PathVariable String recipeId, 
-			@RequestBody IngredientCommand ingredient,
 			@ModelAttribute("recipe") RecipeCommand recipe,
 			@ModelAttribute("uomList") List<UnitOfMeasureCommand> uomList, 
 			Model model) throws Exception {
