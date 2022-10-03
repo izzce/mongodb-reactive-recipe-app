@@ -48,8 +48,8 @@ public class IndexControllerTest {
 	}
 
 	@Test
-	public void test_HTTP_NOT_FOUND() throws Exception {
-		webClient.get().uri("/index_404").exchange().expectStatus().isNotFound();
+	public void test_HTTP_BAD_REQUEST() throws Exception {
+		webClient.get().uri("/index_400").exchange().expectStatus().isBadRequest();
 	}
 }
 
