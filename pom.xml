@@ -132,6 +132,7 @@
                         <exclude>org/izce/mongodb_recipe/model/*</exclude>
                         <exclude>org/izce/mongodb_recipe/exceptions/*</exclude>
                         <exclude>org/izce/mongodb_recipe/security/*</exclude>
+                        <exclude>org/izce/mongodb_recipe/config/*</exclude>
                     </excludes>
                 </configuration>
                 <executions>
