@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.reactive.result.view.Rendering;
 import org.springframework.web.server.WebSession;
+import org.thymeleaf.exceptions.TemplateInputException;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -96,7 +97,7 @@ public class RecipeController {
 	}
 	
 	@ResponseStatus(HttpStatus.NOT_FOUND)
-	@ExceptionHandler(NotFoundException.class)
+	@ExceptionHandler({NotFoundException.class, TemplateInputException.class})
 	public Mono<Rendering> handleNotFound(Exception exception) {
 		log.error("Handling not found exception: ", exception);
 		return Mono.just(Rendering.view("error/404").modelAttribute("exception", exception).build());
